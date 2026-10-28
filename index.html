@@ -82,10 +82,13 @@
   .pill.on{background:var(--moss);color:#fff}
   .dexgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px;margin-top:12px}
   .dexcell{background:var(--paper-dark);border:2px solid var(--ink);border-radius:9px 11px 8px 10px;padding:6px 4px;text-align:center;min-width:0}
-  .dexcell[data-tier="2"]{box-shadow:2px 2px 0 #3f8ea8}.dexcell[data-tier="3"]{box-shadow:2px 2px 0 #8a5bb5}.dexcell[data-tier="4"]{box-shadow:2px 2px 0 var(--sun)}
-  .dexcell canvas{width:56px;height:56px;display:block;margin:0 auto}
+  .dexcell[data-tier="2"]{box-shadow:2px 2px 0 #3f8ea8}.dexcell[data-tier="3"]{box-shadow:2px 2px 0 #8a5bb5}.dexcell[data-tier="4"],.dexcell[data-tier="5"]{box-shadow:2px 2px 0 var(--sun)}
+  .dexcell{position:relative}
+  .dexcell .badge{position:absolute;right:2px;top:2px;background:var(--sun);border:1.5px solid var(--ink);border-radius:999px;font-size:10px;font-weight:800;padding:0 5px;line-height:16px}
+  .dexcell canvas{position:static;inset:auto;width:56px;height:56px;display:block;margin:0 auto}
   .dexcell small{display:block;font-size:11px;font-weight:700;color:var(--ink);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dexcell em{display:block;font-style:normal;font-size:10px;color:var(--ink-soft)}
+  select{flex:1 1 140px;font:inherit;font-weight:700;padding:10px 12px;border:2.5px solid var(--ink);border-radius:10px 12px 9px 11px;background:var(--paper-dark);color:var(--ink)}
   .coinline{font-weight:800;color:var(--ink)!important}
   .coinline i{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);vertical-align:-2px;margin-right:5px}
   .worlds{display:grid;gap:12px;margin-top:12px}
@@ -117,18 +120,20 @@
 <div class="card" id="start">
   <h1>Looplasso <span>Loopers</span></h1>
   <div id="menuRules">
+    <p class="coinline" id="bdayLine" hidden>Happy birthday! Birthdeeoo is waiting in your next mission.</p>
     <p class="coinline"><i></i><span id="coinBal">0</span> coins &middot; <span id="worldName">Mossy Meadow</span></p>
-    <p>Wild Loopers are loose in your room. Befriend them by sending your glowing string through them, or looping it around them.</p>
+    <p>Wild Loopers are loose in your room. Befriend them by getting them to go through the hole in your glowing string.</p>
     <details class="how"><summary>How to play</summary>
     <ul>
-      <li><b>Thread it.</b> Sweep your glow straight through a Looper's body. Its heart flashes open now and then: pass through while it is open for a full hit and extra time. Closed hearts only give half.</li>
-      <li><b>Or circle it.</b> A full loop around a Looper also fills its friendship ring.</li>
-      <li><b>Chain hits.</b> Threads and loops close together build a combo, up to x5 points.</li>
+      <li><b>Through the hole.</b> Your Looplasso makes a ring of light with a hole in the middle. Swing the ring so a Looper ends up <b>inside the hole</b>. Every trip through fills its friendship ring. Lift the ring off and do it again.</li>
+      <li><b>Open hearts.</b> A Looper's heart flashes open now and then. Go through while it is open for bonus points and extra time.</li>
+      <li><b>Touch mode:</b> draw a full loop around it with your finger.</li>
+      <li><b>Chain hits</b> close together build a combo, up to x5 points.</li>
       <li><b>Earn coins</b> for every thread, loop and friend. Spend them on <b>Worlds</b> in the menu. Each new world has new Loopers that need more and more loops.</li>
       <li><b>Fill the ring</b> before the clock runs out. It drains if you stop.</li>
       <li><b>Dodge the bubbles.</b> A bubble that hits your line snaps it, breaks your combo and costs ring progress.</li>
       <li>Each mission you finish makes the next Loopers faster.</li>
-      <li><b>117 different Loopers</b> live out there. Each mission meets five. Befriend them all to fill your Looperdex.</li>
+      <li><b>285 different Loopers</b> live out there. Each mission meets five. Befriend them all to fill your Looperdex.</li>
       <li><b>Switch your Looplasso on</b> to play. Switch it off and the game pauses here.</li>
     </ul></details>
     <p>An unofficial fan game, not affiliated with Loop Labs. Best in a dim room.</p>
@@ -152,7 +157,9 @@
     <button class="primary" id="btnCam">Use camera</button>
     <button id="btnTouch">Play with touch</button>
     <button id="btnWorlds">Worlds</button>
+    <button id="btnInv">Inventory</button>
     <button id="btnDex">Looperdex</button>
+    <button id="btnBday">Birthday</button>
   </div>
   <div class="row" id="menuWaitBtns" hidden>
     <button class="primary" id="btnResume">Continue anyway</button>
@@ -197,6 +204,7 @@
     <button class="primary" id="btnAgain">New mission</button>
     <button id="btnRecal">Recalibrate</button>
     <button id="btnWorlds2">Worlds</button>
+    <button id="btnInv2">Inventory</button>
     <button id="btnDex2">Looperdex</button>
   </div>
 </div>
@@ -208,9 +216,24 @@
   <div class="worlds" id="worldList"></div>
   <div class="row"><button class="primary" id="btnWorldsClose">Back</button></div>
 </div>
+<div class="card" id="invCard" hidden>
+  <h1>Looper <span>inventory</span></h1>
+  <p id="invInfo"></p>
+  <div class="dexgrid" id="invGrid"></div>
+  <div class="row"><button class="primary" id="btnInvClose">Back</button></div>
+</div>
+<div class="card" id="bdayCard" hidden>
+  <h1>When is your <span>birthday</span>?</h1>
+  <p>On your birthday a special Looper, Birthdeeoo, comes to visit. It stays on this device and only the month and day are kept.</p>
+  <div class="row">
+    <select id="bdMonth" aria-label="Month"></select>
+    <select id="bdDay" aria-label="Day"></select>
+  </div>
+  <div class="row"><button class="primary" id="btnBdaySave">Save</button><button id="btnBdaySkip">Skip</button></div>
+</div>
 <div class="card" id="dex" hidden>
   <h1>Looper<span>dex</span></h1>
-  <p id="dexCount">0 of 117 befriended</p>
+  <p id="dexCount">0 of 285 befriended</p>
   <div class="dexgrid" id="dexGrid"></div>
   <div class="row"><button class="primary" id="btnDexClose">Back</button></div>
 </div>
@@ -234,7 +257,7 @@
   var touchPt=null;
 
   var LINE_LIFE=2600;         // ms a point of the capture line stays alive
-  /* ---------- the 117 Loopers (shared by both games) ---------- */
+  /* ---------- the 285 Loopers (shared by both games) ---------- */
   var DEX_KEY='looplasso-dex';
   var LOOPERS=(function(){
     var T1=['Mossip','Pebblo','Dewdle','Fuzzle','Snoot','Bumbly','Tufty','Wobbin','Pipsy','Nibblet','Glimmy','Sproutle','Marbo','Drippo','Cobbit','Lumpkin','Snuggo'];
@@ -243,6 +266,9 @@
     var T1B=['Bobbit','Fliffle','Gumbo','Pudgee','Mopple','Sniffo','Tootle','Wibbit','Jelloo','Crumbo','Nubbin','Poppet','Dabble','Fidget','Gingle','Hubbin','Inkle','Kipper','Lollo','Muffet','Noodlet','Ozzle'];
     var T2B=['Blazzle','Chillo','Dartle','Embloom','Flickit','Gustle','Hazelit','Icicly','Jolter','Kindlet','Lavvy','Murkle','Nettlit','Oozle','Plinkit','Quivit','Rippler','Scorchy','Thundle','Umbrix','Vinelet','Wispit'];
     var T3B=['Astraeon','Boreala','Cosmara','Draconil','Eclipsa','Fluxor','Galaxis','Ionara','Jovian','Kryptal','Lumenar','Monsoona','Novaris','Orbitrix','Pulsarin','Radianta','Spectrix','Tundrake','Ultrava','Zenithar','Wyrmlit','Yondrel'];
+    var T1C=['Pimwick','Tumton','Nuzzbo','Nimble','Hobkin','Glompop','Quibton','Kipling','Blipby','Lumble','Bramger','Tinklet','Lobdle','Crumsy','Quibnook','Nuzzby','Bramnook','Wumton','Jibwick','Tinkwick','Dillnook','Kipdle','Gubwick','Blipnook','Tumsy','Jolger','Tumlet','Mogling','Skumuff','Glombo','Dillpop','Kazling','Fizzpop','Zibsy','Nuzzbee','Snivfin','Gubnook','Nuzzmuff','Snivwick','Kazbee','Pimfin','Blipmuff','Bramkin','Hobdle','Pogmuff','Chimpop','Mimby','Bramton','Pimbee','Jolby','Dillwick','Humbo','Blipger','Fenby','Rilldle'];
+    var T2C=['Cairnbit','Huskos','Grimule','Eddyden','Hailtail','Mossmer','Rimefox','Lynxette','Vexfox','Lynxling','Duskette','Kelpern','Noxos','Driftmer','Cinderern','Fangra','Grimling','Arcling','Wispule','Rimetail','Ironra','Galetail','Boltule','Huskwing','Onyxant','Huskalo','Noxling','Duskos','Fangern','Grimden','Flarera','Zephette','Eddywing','Tidefox','Vexra','Slatewing','Mossos','Rimemer','Cairnos','Cinderwing','Jademer','Cairnmer','Driftant','Lynxos','Flarewing','Kelpalo','Hailos','Lynxern','Fangden','Cairnfox','Pyretail','Flareclaw','Vexling','Onyxclaw','Blazefox','Duskra'];
+    var T3C=['Glaconyx','Vyralis','Ignisithe','Nyxithe','Elysyth','Caelaris','Quorielle','Aeonora','Hyperalis','Nyxesque','Fulgalis','Elysalis','Aeonalis','Caelalis','Fulgova','Elysora','Ignisova','Ignisielle','Elysius','Auroyth','Quoraris','Caelius','Nyxonyx','Hyperundra','Ignisesque','Glacora','Glacyth','Hyperova','Glacielle','Quorundra','Elysesque','Aeonyth','Aeonova','Hyperaris','Ignision','Fulgonyx','Nyxova','Xenoyth','Hyperarax','Vyraris','Fulgesque','Elysova','Caelundra','Vyrundra','Aeonielle','Elysonyx','Fulgion','Glacaris','Aeonithe','Zyphyth','Glacesque','Ignisundra','Hyperesque','Quorova','Hyperion','Zyphius'];
     var FEATS=['roundEars','longEars','horn','spikes','tail','fin','spots','stripes','fangs','halo','crest','bowtie','blush','pointEars','antennae','cheeks','leaf','wings'];
     var EYES=['two','two','three','cyclops','stalk'];
     var SHAPES=[[1,1],[1.15,.9],[.9,1.15],[1.2,1],[1,1.15]];
@@ -252,6 +278,7 @@
       zapfin:  {color:'#ffd24a',accent:'#fff3b0',feats:['pointEars','bolt'],eyes:'two',shape:[1,1],need:4,time:40,speed:120,move:'dash',shoots:false},
       puffrog: {color:'#59a9ff',accent:'#c4e2ff',feats:['cheeks'],         eyes:'two',shape:[1.1,.95],need:4,time:42,speed:60,move:'wander',shoots:true},
       gloomoth:{color:'#b07bff',accent:'#e2ceff',feats:['wings','antennae'],eyes:'two',shape:[1,1],need:5,time:44,speed:70,move:'blink',shoots:false},
+      birthdeeoo:{color:'#ff9bd2',accent:'#fff1a8',feats:['partyhat','blush','cheeks'],eyes:'two',shape:[1,1],need:6,time:50,speed:85,move:'bounce',shoots:false,boss:true,hint:'Only visits on your birthday.'},
       kaleidon:{color:'#ff7ab8',accent:'#ffd2e8',feats:['crown','orbit'],   eyes:'two',shape:[1,1],need:7,time:55,speed:95,move:'dash',shoots:true,boss:true}
     };
     var out=[];
@@ -261,18 +288,25 @@
       if(f){ for(var key in f) L[key]=f[key] }
       else {
         var h=(k*47+17)%360, s=62+(k%4)*4, l=58+(k%3)*3;
-        L.color='hsl('+h+','+s+'%,'+l+'%)'; L.accent='hsl('+h+','+(s-12)+'%,'+Math.min(88,l+20)+'%)';
+        if(k>=116){ s=52+(k%7)*6; l=50+(k%5)*5 }
+        L.color='hsl('+h+','+s+'%,'+l+'%)'; L.accent='hsl('+(k>=116?(h+30+(k%5)*14)%360:h)+','+(s-12)+'%,'+Math.min(88,l+20)+'%)';
         var a=FEATS[k%FEATS.length], b=FEATS[(k*5+7)%FEATS.length]; if(b===a) b=FEATS[(k*5+8)%FEATS.length];
         L.feats=[a,b];
         if(k>=50){ var c3=FEATS[(k*7+3)%FEATS.length], t=0; while(c3===a||c3===b){ c3=FEATS[((k*7+3+(++t))%FEATS.length)] } L.feats.push(c3) }
         L.eyes=EYES[k%EYES.length]; L.shape=SHAPES[(k*3)%SHAPES.length];
+        if(k>=116){
+          var ix=[(k*5+1)%FEATS.length,(k*7+4)%FEATS.length,(k*11+9)%FEATS.length];
+          for(var qi=1;qi<3;qi++){ while(ix.slice(0,qi).indexOf(ix[qi])>=0) ix[qi]=(ix[qi]+1)%FEATS.length }
+          L.feats=ix.map(function(n){ return FEATS[n] });
+          L.eyes=EYES[(k*3+k%2)%EYES.length]; L.shape=SHAPES[(k*2+k%3)%SHAPES.length];
+        }
         if(tier===1){ L.move=MOVES1[k%MOVES1.length]; L.shoots=false; L.need=2+(k%2); L.time=38; L.speed=50+(k%4)*8 }
         else if(tier===2){ L.move=MOVES2[k%MOVES2.length]; L.shoots=(k%3===1); L.need=3+(k%3); L.time=40+(k%3)*2; L.speed=70+(k%5)*10 }
         else { L.move=MOVES3[k%MOVES3.length]; L.shoots=(k%2===0); L.need=5+(k%2); L.time=44; L.speed=100+(k%4)*10 }
       }
       L.size=f&&f.boss?1:(tier===1?.95:(tier===2?1:1.1));
       L.rot=L.speed/600;
-      L.hint=({wander:'Drifts around gently.',dash:'Dashes without warning.',blink:'Vanishes and reappears.',orbit:'Circles the room.',bounce:'Bounces off the walls.'})[L.move]+(L.shoots?' Spits bubbles.':'')+(L.boss?' The legendary Looper.':'');
+      L.hint=(f&&f.hint)?f.hint:({wander:'Drifts around gently.',dash:'Dashes without warning.',blink:'Vanishes and reappears.',orbit:'Circles the room.',bounce:'Bounces off the walls.'})[L.move]+(L.shoots?' Spits bubbles.':'')+(L.boss?' The legendary Looper.':'');
       out.push(L);
     }
     T1.forEach(function(n,k){ add(n,1,k) });
@@ -281,9 +315,15 @@
     T1B.forEach(function(n,k){ add(n,1,k) });
     T2B.forEach(function(n,k){ add(n,2,k) });
     T3B.forEach(function(n,k){ add(n,3,k) });
+    T1C.forEach(function(n,k){ add(n,1,k) });
+    T2C.forEach(function(n,k){ add(n,2,k) });
+    T3C.forEach(function(n,k){ add(n,3,k) });
     add('Kaleidon',4,0);
+    add('Birthdeeoo',5,0);
     return out;
   })();
+  var NORMAL_N=LOOPERS.filter(function(l){ return l.tier<4 }).length;
+  var KALEIDON=LOOPERS.filter(function(l){ return l.id==='kaleidon' })[0], BDAY=LOOPERS.filter(function(l){ return l.id==='birthdeeoo' })[0];
   var dex=(function(){
     var o={}; try{ var a=JSON.parse(localStorage.getItem(DEX_KEY)||'[]'); if(Array.isArray(a)) a.forEach(function(i){ o[i]=1 }) }catch(e){}
     return o;
@@ -321,6 +361,20 @@
     if(n<=0) return; coins+=n; earned+=n; saveWorlds();
     if(x!==undefined) fx.push({text:'+'+n+' coins',x:x,y:y,vx:0,vy:-45,life:1,col:'#ffd24a'});
   }
+  var inv={}, invCoins=0, bdayStr='', bdaySkipped=false, bdayClaimed='';
+  try{
+    inv=JSON.parse(localStorage.getItem('looplasso-inv')||'{}')||{}; invCoins=parseInt(localStorage.getItem('looplasso-invcoins')||'0',10)||0;
+    bdayStr=localStorage.getItem('looplasso-bday')||''; bdaySkipped=localStorage.getItem('looplasso-bday-skip')==='1'; bdayClaimed=localStorage.getItem('looplasso-bday-claimed')||'';
+  }catch(e){}
+  function saveInv(){ try{ localStorage.setItem('looplasso-inv',JSON.stringify(inv)); localStorage.setItem('looplasso-invcoins',String(invCoins)); localStorage.setItem('looplasso-bday-claimed',bdayClaimed) }catch(e){} }
+  function invTotal(){ var n=0; for(var k in inv) n+=inv[k]; return n }
+  function bdayAvailable(){
+    if(!bdayStr) return false;
+    var p=bdayStr.split('-'), m=+p[0], d=+p[1], now=new Date(), y=now.getFullYear();
+    var leap=(y%4===0&&y%100!==0)||y%400===0; if(m===2&&d===29&&!leap) d=28;
+    return now.getMonth()+1===m&&now.getDate()===d&&bdayClaimed!==String(y);
+  }
+  var LVAL={1:8,2:18,3:35,4:150,5:250};
   function dexCount(){ return Object.keys(dex).length }
   function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t } return a }
   function pickFrom(tier,k){
@@ -379,12 +433,15 @@
     var s=parseInt($('sens').value,10)/100;
     return {minV:200-s*110, minS:.55-s*.3, tol:28+s*22};
   }
+  var trk={mask:null,seen:null,stack:null};
   function track(){
     if(!stream||cam.readyState<2||!colorMode) return null;
     sctx.drawImage(cam,0,0,small.width,small.height);
     var d=sctx.getImageData(0,0,small.width,small.height).data;
     var p=sensParams(), multi=(colorMode==='rgb'), center=HUES[colorMode];
-    var minV=p.minV+(multi?20:0), minS=p.minS+(multi?.05:0), sx=0,sy=0,n=0;
+    var minV=p.minV+(multi?20:0), minS=p.minS+(multi?.05:0), sx=0,sy=0,n=0, SW=small.width, SH=small.height;
+    if(!trk.mask||trk.mask.length!==SW*SH){ trk.mask=new Uint8Array(SW*SH); trk.seen=new Uint8Array(SW*SH); trk.stack=new Int32Array(SW*SH) }
+    var mask=trk.mask, seen=trk.seen, stack=trk.stack; mask.fill(0); seen.fill(0);
     for(var y=0;y<small.height;y++){
       for(var x=0;x<small.width;x++){
         var i=(y*small.width+x)*4, r=d[i],g=d[i+1],b=d[i+2];
@@ -399,11 +456,27 @@
           var dh=Math.abs(((h-center+540)%360)-180);
           if(dh>p.tol) continue;
         }
-        sx+=x; sy+=y; n++;
+        mask[y*SW+x]=1;
       }
     }
+    // keep every connected piece of lit string, drop lone noise pixels: this is the WHOLE string
+    var pts=[], idx, kept=[];
+    for(idx=0;idx<mask.length;idx++){
+      if(!mask[idx]||seen[idx]) continue;
+      var sp0=0, comp=[]; stack[sp0++]=idx; seen[idx]=1;
+      while(sp0){
+        var cur=stack[--sp0]; comp.push(cur); var cx=cur%SW, cy=(cur/SW)|0;
+        for(var oy=-1;oy<=1;oy++) for(var ox=-1;ox<=1;ox++){
+          var nx=cx+ox, ny=cy+oy; if(nx<0||ny<0||nx>=SW||ny>=SH) continue;
+          var ni=ny*SW+nx; if(mask[ni]&&!seen[ni]){ seen[ni]=1; stack[sp0++]=ni }
+        }
+      }
+      if(comp.length>=3) kept.push(comp);
+    }
+    kept.forEach(function(comp){ comp.forEach(function(ci){ var px=ci%SW, py=(ci/SW)|0; sx+=px; sy+=py; n++; pts.push([(px+.5)/SW,(py+.5)/SH]) }) });
     if(n<4) return null;
-    return {x:(sx/n+.5)/small.width, y:(sy/n+.5)/small.height};
+    if(pts.length>360){ var stp=pts.length/360, thin=[]; for(var u=0;u<360;u++) thin.push(pts[Math.floor(u*stp)]); pts=thin }
+    return {x:(sx/n+.5)/SW, y:(sy/n+.5)/SH, pts:pts};
   }
   function toCanvasPx(nx,ny){
     var rc=coverRect(cam.videoWidth||640,cam.videoHeight||480);
@@ -443,8 +516,8 @@
   }
 
   function pickMission(){
-    var m=pickFrom(1,2).concat(pickFrom(2,2));
-    m=m.concat(normalsCaught()>=LOOPERS.length-1&&!dex.kaleidon?[LOOPERS[LOOPERS.length-1]]:pickFrom(3,1));
+    var m=bdayAvailable()?[BDAY]:[]; m=m.concat(pickFrom(1,2)).concat(pickFrom(2,2));
+    m=m.concat(normalsCaught()>=NORMAL_N&&!dex.kaleidon?[KALEIDON]:pickFrom(3,1));
     return m;
   }
   /* ---------- encounters ---------- */
@@ -461,8 +534,8 @@
     creature={sp:sp,need:nd,timeMax:sp.time*tm,x:x,y:y,r:r,tx:x,ty:y,vx:0,vy:0,phase:'intro',pt:0,prog:0,timeLeft:sp.time*tm,
       nextAct:1.8,alpha:1,scale:0,age:0,glow:0,inside:false,entry:null,passCool:0,heartOpen:false,spd:1+level*.07,bob:Math.random()*6,hurt:0,dashing:false,ang:a0,vx:Math.cos(a0)*sp.speed,vy:Math.sin(a0)*sp.speed};
     bubbles=[]; trail=[]; lastP=null; lastLoopAt=performance.now();
-    $('bName').textContent=sp.name+'  #'+sp.idx; $('bHint').textContent=sp.hint+'  Thread its open heart or loop it. Fill the ring.';
-    toast((enc===0?WORLDS[curWorld].name+'. ':'')+'A wild '+sp.name+' appeared!'+(dex[sp.id]?'':' New!')+(enc===0&&level>0?'  Level '+(level+1):''),1800);
+    $('bName').textContent=sp.name+'  #'+sp.idx; $('bHint').textContent=sp.hint+'  Put it through the hole in your string.';
+    toast((sp.id==='birthdeeoo'?'Happy birthday! ':(enc===0?WORLDS[curWorld].name+'. ':''))+'A wild '+sp.name+' appeared!'+(dex[sp.id]?'':' New!')+(enc===0&&level>0?'  Level '+(level+1):''),1800);
   }
   function updateHud(){
     $('capCount').textContent=caps.length+'/'+mission.length;
@@ -502,52 +575,56 @@
     trail.push(np);
   }
 
-  function loopClosed(poly,hit,now){
-    if(!creature||creature.phase!=='fight') return;
-    var c=creature, ok=inPoly(c.x,c.y,poly) && minEdgeDist(c.x,c.y,poly)>c.r*.45;
-    if(ok){
-      c.prog+=1; lastLoopAt=now; c.hurt=.5; c.glow=1;
-      combo++; comboT=3; var pts=25*mult(); score+=pts; addCoins(4*mult(),c.x+c.r*.8,c.y); burst(c.x,c.y,c.sp.accent,18,170);
-      fx.push({ring:true,x:c.x,y:c.y,r:c.r,life:1,col:c.sp.accent});
-      fx.push({text:'Loop +'+pts,x:c.x,y:c.y-c.r*1.3,vx:0,vy:-60,life:1,col:'#fffaf0'});
-      if(c.prog>=c.need) capture();
-    }
-  }
-
-  /* ---------- threading light through a Looper ---------- */
-  function threadTest(c,p0,p1,now){
-    var rb=c.r*(c.sp.shape[0]+c.sp.shape[1])/2*.8;
-    var dx=p1.x-p0.x, dy=p1.y-p0.y, fx0=p0.x-c.x, fy0=p0.y-c.y;
-    var in0=Math.hypot(fx0,fy0)<rb, in1=Math.hypot(p1.x-c.x,p1.y-c.y)<rb;
-    var a=dx*dx+dy*dy, b=2*(fx0*dx+fy0*dy), cc=fx0*fx0+fy0*fy0-rb*rb, disc=b*b-4*a*cc, t1=0, t2=1;
-    if(a>1e-6&&disc>0){ var sq=Math.sqrt(disc); t1=Math.max(0,(-b-sq)/(2*a)); t2=Math.min(1,(-b+sq)/(2*a)) }
-    function at(t){ return {x:p0.x+dx*t,y:p0.y+dy*t} }
-    if(!in0&&in1){ c.inside=true; c.entry=at(t1) }
-    else if(in0&&!in1){ if(!c.inside||!c.entry) c.entry=p0; threadDone(c,c.entry,at(t2),rb,now); c.inside=false; c.entry=null }
-    else if(in0&&in1){ if(!c.inside){ c.inside=true; c.entry=p0 } }
-    else if(a>1e-6&&disc>0&&t1<t2&&(-b-Math.sqrt(disc))/(2*a)>=0&&(-b+Math.sqrt(disc))/(2*a)<=1){ threadDone(c,at(t1),at(t2),rb,now); c.inside=false; c.entry=null }
-  }
-  function threadDone(c,e,x,rb,now){
-    if(c.passCool>0||Math.hypot(x.x-e.x,x.y-e.y)<rb*.8) return;
-    var open=c.heartOpen, gain=open?1:.5;
-    c.prog=Math.min(c.need,c.prog+gain); c.passCool=.3; c.hurt=.3; c.glow=1; lastLoopAt=now;
-    combo++; comboT=3; var pts=(open?60:20)*mult(); score+=pts; addCoins((open?5:2)*mult(),c.x+c.r*.8,c.y);
+  // A Looper has gone THROUGH the hole: it is inside the ring your string makes
+  function loopHit(c,now){
+    if(c.phase!=='fight') return;
+    var open=c.heartOpen;
+    c.prog+=1; lastLoopAt=now; c.hurt=.5; c.glow=1; c.passCool=.3;
+    combo++; comboT=3; var pts=(open?50:25)*mult(); score+=pts; addCoins((open?6:4)*mult(),c.x+c.r*.8,c.y);
     if(open) c.timeLeft=Math.min(c.timeMax,c.timeLeft+1.2);
-    fx.push({line:true,a:e,b:x,life:1,hue:lightHue(now,0)});
-    var mx=(e.x+x.x)/2, my=(e.y+x.y)/2;
-    burst(mx,my,'hsl('+Math.round(lightHue(now,0))+',100%,65%)',open?22:10,open?230:140);
-    fx.push({text:(open?'Perfect! +':'Thread +')+pts,x:c.x,y:c.y-c.r*1.3,vx:0,vy:-60,life:1,col:open?'#ffe27a':'#fffaf0'});
+    burst(c.x,c.y,open?'#ffe27a':c.sp.accent,open?26:18,open?220:170);
+    fx.push({ring:true,x:c.x,y:c.y,r:c.r,life:1,col:c.sp.accent});
+    fx.push({text:(open?'Perfect! +':'Through! +')+pts,x:c.x,y:c.y-c.r*1.3,vx:0,vy:-60,life:1,col:open?'#ffe27a':'#fffaf0'});
     if(c.prog>=c.need) capture();
+  }
+  function holeTest(c,pts,dt,now){
+    c.holeCool=Math.max(0,(c.holeCool||0)-dt);
+    var inHole=false;
+    if(pts&&pts.length>=8){
+      var rb=c.r*(c.sp.shape[0]+c.sp.shape[1])/2*.8, maxR=BASE*.45, bins=[0,0,0,0,0,0,0,0,0,0,0,0], inside=0, i, dx, dy, d;
+      for(i=0;i<pts.length;i++){
+        dx=pts[i].x-c.x; dy=pts[i].y-c.y; d=Math.hypot(dx,dy);
+        if(d<rb*.55) inside++;
+        else if(d<maxR) bins[Math.min(11,Math.floor((Math.atan2(dy,dx)+Math.PI)/6.2832*12))]++;
+      }
+      var cov=0; for(i=0;i<12;i++) if(bins[i]>0) cov++;
+      inHole=(cov>=10&&inside<=3);
+    }
+    c.holeFrames=inHole?(c.holeFrames||0)+1:0;
+    c.holeOut=inHole?0:(c.holeOut||0)+dt;
+    if(c.holeFrames>=3&&!c.holeLatched&&c.holeCool<=0){ c.holeLatched=true; c.holeCool=.5; loopHit(c,now) }
+    if(!inHole&&c.holeOut>.45) c.holeLatched=false;
+    c.inHole=inHole;
+  }
+  function loopClosed(poly,hit,now){
+    if(!creature||creature.phase!=='fight'||mode!=='touch') return;
+    var c=creature, ok=inPoly(c.x,c.y,poly) && minEdgeDist(c.x,c.y,poly)>c.r*.45;
+    if(ok) loopHit(c,now);
   }
 
   function capture(){
     var c=creature; c.phase='caught'; c.pt=0;
     var bonus=100+Math.round(c.timeLeft)*5+c.need*30;
-    score+=bonus; addCoins(10+c.need*2+curWorld*5,c.x,c.y-c.r*.4);
+    var lv=Math.round((LVAL[c.sp.tier]||8)*(1+curWorld*.5));
+    score+=bonus; addCoins(10+c.need*2+curWorld*5+lv,c.x,c.y-c.r*.4);
+    // every Looper you befriend pays you on the spot and goes into your inventory
+    inv[c.sp.id]=(inv[c.sp.id]||0)+1; invCoins+=lv;
+    if(c.sp.id==='birthdeeoo') bdayClaimed=String(new Date().getFullYear());
+    saveInv(); refreshBday();
     caps.push(c.sp.id); bubbles=[]; trail=[];
     if(dexAdd(c.sp.id)) setTimeout(function(){ toast('New Looperdex entry: '+c.sp.name+' ('+dexCount()+'/'+LOOPERS.length+')',2200) },700);
     burst(c.x,c.y,c.sp.color,40,260);
-    toast(c.sp.name+' is your friend! +'+bonus,2000);
+    toast(c.sp.name+' joined your inventory! Worth +'+lv+' coins',2400);
   }
   function escape(){
     var c=creature; c.phase='escaped'; c.pt=0; trail=[]; bubbles=[];
@@ -567,7 +644,7 @@
     $('oSub').textContent=(caps.length===mission.length)
       ?'You befriended all '+mission.length+' Loopers on this mission.'
       :'You befriended '+caps.length+' of '+mission.length+'. The others got away. Keep your line clear of bumps and bubbles.';
-    $('oDex').textContent='Looperdex: '+dexCount()+' of '+LOOPERS.length+(dexCount()===LOOPERS.length-1&&!dex.kaleidon?'. One legendary Looper is waiting for you...':''); $('oCaps').textContent=caps.length+'/'+mission.length; $('oScore').textContent=score; $('oCoins').textContent=earned; showNext(); $('oBest').textContent=best;
+    $('oDex').textContent='Looperdex: '+dexCount()+' of '+LOOPERS.length+(normalsCaught()>=NORMAL_N&&!dex.kaleidon?'. One legendary Looper is waiting for you...':''); $('oCaps').textContent=caps.length+'/'+mission.length; $('oScore').textContent=score; $('oCoins').textContent=earned; showNext(); $('oBest').textContent=best;
     setState('over');
   }
 
@@ -586,7 +663,8 @@
         var p=toCanvasPx(t.x,t.y);
         if(player.seen){ player.x+=(p.x/W-player.x)*.6; player.y+=(p.y/H-player.y)*.6 } else { player.x=p.x/W; player.y=p.y/H }
         player.seen=true; player.lastSeen=now;
-      } else if(now-player.lastSeen>250){ player.seen=false }
+        player.str=t.pts.map(function(q){ return toCanvasPx(q[0],q[1]) });
+      } else { player.str=null; if(now-player.lastSeen>250){ player.seen=false } }
     } else if(touchPt){
       player.x+=(touchPt.x-player.x)*.55; player.y+=(touchPt.y-player.y)*.55; player.seen=true; player.lastSeen=now;
     } else if(now-player.lastSeen>150){ player.seen=false }
@@ -656,10 +734,7 @@
       if(now-lastLoopAt>3200 && c.prog>0){ c.prog=Math.max(0,c.prog-.22*dt) }
 
       // collisions with the line and the cursor
-      var cur=player.seen?{x:px,y:py}:null;
-      if(cur&&lastP&&c.alpha>.6) threadTest(c,lastP,cur,now);
-      else if(!cur){ c.inside=false; c.entry=null }
-      lastP=cur;
+      if(mode==='camera') holeTest(c,c.alpha>.6?player.str:null,dt,now);
       if(c.timeLeft<=0) escape();
     } else if(c.phase==='caught'||c.phase==='escaped'){
       c.pt+=dt;
@@ -672,6 +747,7 @@
     for(var i=bubbles.length-1;i>=0;i--){
       var b=bubbles[i]; b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt;
       var hitLine=lineTouches(b.x,b.y,b.r+3), hitCursor=player.seen&&Math.hypot(px-b.x,py-b.y)<b.r+10;
+      if(!hitCursor&&player.str){ for(var si=0;si<player.str.length;si+=2){ if(Math.hypot(player.str[si].x-b.x,player.str[si].y-b.y)<b.r+4){ hitCursor=true; break } } }
       if(hitLine||hitCursor){ snapLine(8,b.x,b.y); burst(b.x,b.y,'#c4e2ff',8,90); bubbles.splice(i,1); continue }
       if(b.life<=0||b.x<-40||b.x>W+40||b.y<-40||b.y>H+40) bubbles.splice(i,1);
     }
@@ -729,6 +805,13 @@
     if(has('antennae')){ g.strokeStyle=col; g.lineWidth=3; g.beginPath(); g.moveTo(-r*.3,-ry*.9); g.quadraticCurveTo(-r*.5,-ry*1.5,-r*.2,-ry*1.6); g.moveTo(r*.3,-ry*.9); g.quadraticCurveTo(r*.5,-ry*1.5,r*.2,-ry*1.6); g.stroke(); g.fillStyle=acc; g.beginPath(); g.arc(-r*.2,-ry*1.6,r*.08,0,6.283); g.arc(r*.2,-ry*1.6,r*.08,0,6.283); g.fill() }
     if(has('crest')){ g.fillStyle=acc; for(i=-1;i<=1;i++){ g.save(); g.translate(i*r*.2,-ry*.95); g.rotate(i*.35); ell(g,0,-r*.3,r*.1,r*.38); g.restore() } }
     if(has('bowtie')){ g.fillStyle=sil?acc:'#ff5a7a'; tri(g,0,ry*.72,-r*.32,ry*.55,-r*.32,ry*.9); tri(g,0,ry*.72,r*.32,ry*.55,r*.32,ry*.9); g.beginPath(); g.arc(0,ry*.72,r*.08,0,6.283); g.fill() }
+    if(has('partyhat')){
+      var hw=r*.42, hb=-ry*.92, ht=-ry*1.95; g.save(); g.rotate(-.18);
+      g.fillStyle=sil?acc:'#ff5fa8'; tri(g,-hw,hb,hw,hb,0,ht);
+      if(!sil){ g.fillStyle='#fff1a8'; g.beginPath(); g.moveTo(-hw*.62,hb+(ht-hb)*.38); g.lineTo(hw*.62,hb+(ht-hb)*.38); g.lineTo(hw*.38,hb+(ht-hb)*.62); g.lineTo(-hw*.38,hb+(ht-hb)*.62); g.closePath(); g.fill();
+        g.fillStyle='#5ad2ff'; g.beginPath(); g.arc(0,ht,r*.1,0,6.283); g.fill() }
+      g.restore();
+    }
     if(has('halo')){ g.strokeStyle=sil?acc:'#fff3b0'; g.lineWidth=Math.max(2,r*.08); g.beginPath(); g.ellipse(0,-ry*1.15,r*.45,r*.14,0,0,6.283); g.stroke() }
     if(has('orbit')){ var oa=o.still?0:now/500; g.fillStyle=acc; for(i=0;i<4;i++){ g.beginPath(); g.arc(Math.cos(oa+i*1.571)*r*1.45,Math.sin(oa+i*1.571)*r*.5-ry*.1,r*.12,0,6.283); g.fill() } }
     // eyes
@@ -776,6 +859,7 @@
       }
       ctx.restore();
       if(c.glow>0){ var hg=ctx.createRadialGradient(0,0,0,0,0,r*1.5); hg.addColorStop(0,lightCol(now,0,c.glow*.55,65)); hg.addColorStop(1,lightCol(now,0,0,65)); ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=hg; circle(0,0,r*1.5); ctx.fill(); ctx.restore(); }
+      if(c.inHole){ ctx.strokeStyle=lightCol(now,0,.9,70); ctx.lineWidth=3; ctx.setLineDash([6,5]); circle(0,0,br*1.5); ctx.stroke(); ctx.setLineDash([]) }
       // heart: dim while closed, bright while open
       if(c.heartOpen){
         var pu=.5+.5*Math.sin(now/80), hg2=ctx.createRadialGradient(0,0,0,0,0,r*.65);
@@ -835,6 +919,12 @@
           ctx.beginPath(); ctx.moveTo(trail[i-1].x,trail[i-1].y); ctx.lineTo(trail[i].x,trail[i].y); ctx.stroke();
         }
       }
+      // the whole string, as the camera sees it
+      if(mode==='camera'&&player.str&&player.seen){
+        var sz=Math.max(3,W/80); ctx.save(); ctx.globalCompositeOperation='lighter';
+        for(var qi=0;qi<player.str.length;qi++){ ctx.fillStyle=lightCol(now,qi,.7); ctx.fillRect(player.str[qi].x-sz/2,player.str[qi].y-sz/2,sz,sz) }
+        ctx.restore();
+      }
       // cursor
       if(player.seen){
         var px=player.x*W, py=player.y*H;
@@ -878,7 +968,13 @@
 
     if(state==='calib'&&mode==='camera'&&colorMode){
       var t=track();
-      if(t){ var cp=toCanvasPx(t.x,t.y); ctx.strokeStyle='#ffc83d'; ctx.lineWidth=3; circle(cp.x,cp.y,22); ctx.stroke(); }
+      if(t){
+        var cp=toCanvasPx(t.x,t.y), sz2=Math.max(3,W/80);
+        ctx.save(); ctx.globalCompositeOperation='lighter';
+        t.pts.forEach(function(q,qi){ var m=toCanvasPx(q[0],q[1]); ctx.fillStyle=lightCol(now,qi,.8); ctx.fillRect(m.x-sz2/2,m.y-sz2/2,sz2,sz2) });
+        ctx.restore();
+        ctx.strokeStyle='#ffc83d'; ctx.lineWidth=3; circle(cp.x,cp.y,22); ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -1028,10 +1124,48 @@
   $('btnWorlds').addEventListener('click',function(){ openWorlds('start') });
   $('btnWorlds2').addEventListener('click',function(){ openWorlds('over') });
   $('btnWorldsClose').addEventListener('click',function(){ show('worldsCard',false); show(worldsFrom,true); refreshWorldUI(); showNext() });
-  refreshWorldUI();
+  function refreshBday(){ $('bdayLine').hidden=!bdayAvailable() }
+  var invFrom='start', bdayFrom='start';
+  function openInv(from){
+    invFrom=from; show(from,false); show('invCard',true);
+    var kinds=Object.keys(inv).filter(function(k){ return inv[k]>0 }).length;
+    $('invInfo').textContent=invTotal()===0?'Nothing here yet. Befriended Loopers pay you coins on the spot and move into your inventory.':'You hold '+invTotal()+' Loopers ('+kinds+' kinds). They have paid you '+invCoins+' coins so far.';
+    var grid=$('invGrid'); grid.innerHTML='';
+    LOOPERS.forEach(function(sp){
+      var n=inv[sp.id]||0; if(!n) return;
+      var cell=document.createElement('div'); cell.className='dexcell'; cell.setAttribute('data-tier',sp.tier);
+      var cv=document.createElement('canvas'); cv.width=112; cv.height=112; cell.appendChild(cv);
+      var g=cv.getContext('2d'); g.translate(56,60); drawLooper(g,sp,24,0,{still:true});
+      var nm=document.createElement('small'); nm.textContent=sp.name; cell.appendChild(nm);
+      var nu=document.createElement('em'); nu.textContent='worth '+(LVAL[sp.tier]||8)+'c'; cell.appendChild(nu);
+      if(n>1){ var bd=document.createElement('span'); bd.className='badge'; bd.textContent='x'+n; cell.appendChild(bd) }
+      grid.appendChild(cell);
+    });
+  }
+  var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  (function(){
+    var mo=$('bdMonth'), dy=$('bdDay');
+    MONTHS.forEach(function(m,i){ var o=document.createElement('option'); o.value=i+1; o.textContent=m; mo.appendChild(o) });
+    for(var d=1;d<=31;d++){ var o=document.createElement('option'); o.value=d; o.textContent=d; dy.appendChild(o) }
+    if(bdayStr){ var p=bdayStr.split('-'); mo.value=p[0]; dy.value=p[1] }
+  })();
+  function openBday(from){ bdayFrom=from; show(from,false); show('bdayCard',true) }
+  function closeBday(){ show('bdayCard',false); show(bdayFrom,true); refreshBday() }
+  $('btnBdaySave').addEventListener('click',function(){
+    bdayStr=$('bdMonth').value+'-'+$('bdDay').value; bdaySkipped=false;
+    try{ localStorage.setItem('looplasso-bday',bdayStr); localStorage.removeItem('looplasso-bday-skip') }catch(e){}
+    closeBday(); if(bdayAvailable()) toast('Happy birthday! Birthdeeoo is coming to visit.',2600);
+  });
+  $('btnBdaySkip').addEventListener('click',function(){ bdaySkipped=true; try{ localStorage.setItem('looplasso-bday-skip','1') }catch(e){} closeBday() });
+  $('btnBday').addEventListener('click',function(){ openBday('start') });
+  $('btnInv').addEventListener('click',function(){ openInv('start') });
+  $('btnInv2').addEventListener('click',function(){ openInv('over') });
+  $('btnInvClose').addEventListener('click',function(){ show('invCard',false); show(invFrom,true) });
+  refreshWorldUI(); refreshBday();
+  if(!bdayStr&&!bdaySkipped){ bdayFrom='start'; show('start',false); show('bdayCard',true) }
   function openDex(from){
     dexFrom=from; show(from,false); show('dex',true);
-    $('dexCount').textContent=dexCount()+' of '+LOOPERS.length+' befriended'+(normalsCaught()>=LOOPERS.length-1&&!dex.kaleidon?'. The legendary Looper is ready to meet you.':'');
+    $('dexCount').textContent=dexCount()+' of '+LOOPERS.length+' befriended'+(normalsCaught()>=NORMAL_N&&!dex.kaleidon?'. The legendary Looper is ready to meet you.':'');
     var grid=$('dexGrid'); grid.innerHTML='';
     LOOPERS.forEach(function(sp){
       var got=!!dex[sp.id], cell=document.createElement('div'); cell.className='dexcell'; cell.setAttribute('data-tier',sp.tier);
