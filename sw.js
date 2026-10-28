@@ -1,5 +1,5 @@
 // Offline support: the app shell is cached after the first visit.
-var CACHE = 'looplasso-loopers-v1';
+var CACHE = 'looplasso-loopers-v2';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'favicon.svg',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
@@ -17,7 +17,7 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   if (url.origin !== location.origin) return; // fonts etc. go straight to the network
   // newest page when online, cached copy when offline
-  e.respondWith(fetch(req).then(function (res) {
+  e.respondWith(fetch(req,{cache:'no-cache'}).then(function (res) {
     var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy) });
     return res;
   }).catch(function () {
