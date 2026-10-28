@@ -178,6 +178,8 @@
     <button data-c="blue" aria-pressed="false"><i class="sw" style="background:#3b7bff"></i>Blue</button>
   </div>
   <p class="status"><i class="dot" id="trkDot"></i><span id="trkText">Looking for your string. Tap it on the screen to lock its color.</span></p>
+  <div class="row"><button id="btnRoom">Hide my room</button><button id="btnRoomReset">Forget</button></div>
+  <p style="font-size:13px">Turn your Looplasso <b>off</b>, then tap Hide my room. Anything else that is the same color (lamps, screens, clothes) gets ignored. It also learns on its own whenever the game sees the lasso is off.</p>
   <label>Sensitivity <input type="range" id="sens" min="1" max="100" value="50" aria-label="Sensitivity"></label>
   <div class="audiobox">
     <b>Lasso sound</b>
@@ -419,7 +421,7 @@
 
   /* ---------- camera + tracking ---------- */
   function startCamera(){
-    stopCamera();
+    stopCamera(); forgetRoom();
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
       return Promise.reject(new Error('Camera access needs a secure page (https) in a normal browser.'));
     }
@@ -427,6 +429,7 @@
       stream=s; cam.srcObject=s; mirror=(facing==='user'); return cam.play();
     });
   }
+  function forgetRoom(){ if(trk.bg){ trk.bg.fill(0); trk.bgN=0 } if(trk.stat) trk.stat.fill(0) }
   function stopCamera(){ if(stream){ stream.getTracks().forEach(function(t){t.stop()}); stream=null } }
   function coverRect(vw,vh){ var s=Math.max(W/vw,H/vh), dw=vw*s, dh=vh*s; return {dx:(W-dw)/2,dy:(H-dh)/2,dw:dw,dh:dh} }
   var HUES={red:0,green:120,blue:240};
@@ -435,14 +438,14 @@
     var s=parseInt($('sens').value,10)/100;
     return {minV:200-s*110, minS:.55-s*.3, tol:28+s*22};
   }
-  var trk={weak:null,strong:null,seen:null,stack:null,core:null,auto:1,last:null,n:0};
-  function track(){
+  var trk={weak:null,strong:null,seen:null,stack:null,core:null,stat:null,bg:null,bgN:0,auto:1,last:null,n:0,lc:null,learnUntil:0};
+  function track(learn){
     if(!stream||cam.readyState<2||!colorMode) return null;
     var SW=small.width, SH=small.height, N=SW*SH;
     sctx.drawImage(cam,0,0,SW,SH);
     var d=sctx.getImageData(0,0,SW,SH).data; trk.last=d;
-    if(!trk.weak||trk.weak.length!==N){ trk.weak=new Uint8Array(N); trk.strong=new Uint8Array(N); trk.seen=new Uint8Array(N); trk.core=new Uint8Array(N); trk.stack=new Int32Array(N) }
-    var weak=trk.weak, strong=trk.strong, seen=trk.seen, core=trk.core, stack=trk.stack;
+    if(!trk.weak||trk.weak.length!==N){ trk.weak=new Uint8Array(N); trk.strong=new Uint8Array(N); trk.seen=new Uint8Array(N); trk.core=new Uint8Array(N); trk.stack=new Int32Array(N); trk.stat=new Uint16Array(N); trk.bg=new Uint8Array(N); trk.bgN=0 }
+    var weak=trk.weak, strong=trk.strong, seen=trk.seen, core=trk.core, stack=trk.stack, stat=trk.stat, bgm=trk.bg;
     weak.fill(0); strong.fill(0); seen.fill(0); core.fill(0);
     var p=sensParams(), f=trk.auto, multi=(colorMode==='rgb'), center=HUES[colorMode];
     // thresholds relax or tighten on their own (auto gain) so a dim or a blown-out room both work
@@ -452,6 +455,7 @@
     for(y=0;y<SH;y++){
       for(x=0;x<SW;x++){
         idx=y*SW+x; i=idx*4;
+        if(bgm[idx]) continue;   // something from your room that is not the string
         var r=d[i], g=d[i+1], b=d[i+2], mx=r>g?(r>b?r:b):(g>b?g:b);
         if(mx<wV) continue;
         var mn=r<g?(r<b?r:b):(g<b?g:b), df=mx-mn, sat=df/mx;
@@ -478,36 +482,98 @@
       if(near) core[idx]=1;
     }
     for(idx=0;idx<N;idx++) if(core[idx]) weak[idx]=1;
+    // anything that stays lit in exactly the same place for ~10 seconds is part of the room, not a moving string
+    for(idx=0;idx<N;idx++){
+      if(weak[idx]){ if(stat[idx]<65000) stat[idx]++; if(stat[idx]>300){ weak[idx]=0; strong[idx]=0 } }
+      else if(stat[idx]) stat[idx]=stat[idx]>3?stat[idx]-3:0;
+    }
     // group lit pixels into pieces (a gap of one pixel is bridged), keep pieces that hold real signal
-    var pts=[], sx=0, sy=0, n=0, k;
+    var comps=[], k;
     for(idx=0;idx<N;idx++){
       if(!weak[idx]||seen[idx]) continue;
-      var top=0, comp=[], sc=0; stack[top++]=idx; seen[idx]=1;
+      var top=0, comp=[], sc=0, x0=SW, x1=0, y0=SH, y1=0; stack[top++]=idx; seen[idx]=1;
       while(top){
         var cur=stack[--top]; comp.push(cur); if(strong[cur]) sc++;
-        var ux=cur%SW, uy=(cur/SW)|0;
+        var ux=cur%SW, uy=(cur/SW)|0; if(ux<x0)x0=ux; if(ux>x1)x1=ux; if(uy<y0)y0=uy; if(uy>y1)y1=uy;
         for(var dy=-2;dy<=2;dy++) for(var dx=-2;dx<=2;dx++){
           var vx=ux+dx, vy=uy+dy; if(vx<0||vy<0||vx>=SW||vy>=SH) continue;
           var vi=vy*SW+vx; if(weak[vi]&&!seen[vi]){ seen[vi]=1; stack[top++]=vi }
         }
       }
-      if(sc>=2&&comp.length>=4){
-        for(k=0;k<comp.length;k++){ var ci2=comp[k], qx=ci2%SW, qy=(ci2/SW)|0; sx+=qx; sy+=qy; n++; pts.push([(qx+.5)/SW,(qy+.5)/SH]) }
+      if(sc<2||comp.length<4) continue;
+      // a string is thin. Solid blobs (lamps, screens, clothes) are not the string.
+      var inner=0;
+      for(k=0;k<comp.length;k++){
+        var ck=comp[k], qx=ck%SW, qy=(ck/SW)|0;
+        if(qx>0&&qy>0&&qx<SW-1&&qy<SH-1&&weak[ck-1]&&weak[ck+1]&&weak[ck-SW]&&weak[ck+SW]&&weak[ck-SW-1]&&weak[ck-SW+1]&&weak[ck+SW-1]&&weak[ck+SW+1]) inner++;
       }
+      var solid=inner/comp.length;
+      if(comp.length>=36&&solid>.55) continue;
+      var cxm=(x0+x1)/2, cym=(y0+y1)/2, score=sc*(1-solid);
+      if(trk.lc&&Math.hypot(cxm-trk.lc.x,cym-trk.lc.y)<SW*.3) score*=2;   // stick with the string we were already following
+      comps.push({pix:comp,score:score,x0:x0,x1:x1,y0:y0,y1:y1});
+    }
+    // the string is one connected thing: keep the best piece and the pieces close to it, drop the rest of the room
+    var pts=[], sx=0, sy=0, n=0, keep=[];
+    if(comps.length){
+      var best=comps[0]; comps.forEach(function(c0){ if(c0.score>best.score) best=c0 });
+      var ux0=best.x0, ux1=best.x1, uy0=best.y0, uy1=best.y1, taken=[best], grew=true;
+      // grow outward from the best piece, taking only pieces close to what we already have
+      while(grew){
+        grew=false; var mg=Math.max(6,.22*Math.max(ux1-ux0,uy1-uy0));
+        comps.forEach(function(c0){
+          if(taken.indexOf(c0)>=0) return;
+          if(c0.x1>=ux0-mg&&c0.x0<=ux1+mg&&c0.y1>=uy0-mg&&c0.y0<=uy1+mg){ taken.push(c0); ux0=Math.min(ux0,c0.x0); ux1=Math.max(ux1,c0.x1); uy0=Math.min(uy0,c0.y0); uy1=Math.max(uy1,c0.y1); grew=true }
+        });
+      }
+      keep=taken;
+    }
+    keep.forEach(function(c0){ c0.pix.forEach(function(ci2){ var qx=ci2%SW, qy=(ci2/SW)|0; sx+=qx; sy+=qy; n++; pts.push([(qx+.5)/SW,(qy+.5)/SH]) }) });
+    if(learn){
+      // lasso is off: whatever still looks string-coloured is part of the room. Remember it and ignore it later.
+      for(idx=0;idx<N;idx++){
+        if(!weak[idx]) continue;
+        var lx=idx%SW, ly=(idx/SW)|0;
+        for(var oy2=-1;oy2<=1;oy2++) for(var ox2=-1;ox2<=1;ox2++){
+          var nx2=lx+ox2, ny2=ly+oy2; if(nx2<0||ny2<0||nx2>=SW||ny2>=SH) continue;
+          var bi=ny2*SW+nx2; if(!bgm[bi]){ bgm[bi]=1; trk.bgN++ }
+        }
+      }
+      if(trk.bgN>N*.3){ bgm.fill(0); trk.bgN=0 }   // learned too much, start over
+      return null;
     }
     // auto gain
     if(n<10) trk.auto=Math.max(.72,trk.auto-.03);
     else if(n>N*.05) trk.auto=Math.min(1.3,trk.auto+.02);
     else trk.auto+=(1-trk.auto)*.003;
     trk.n=n;
-    if(n<6) return null;
+    if(n<6){ trk.lc=null; return null }
+    trk.lc={x:sx/n,y:sy/n};
     if(pts.length>500){ var stp=pts.length/500, thin=[]; for(var u=0;u<500;u++) thin.push(pts[Math.floor(u*stp)]); pts=thin }
     return {x:(sx/n+.5)/SW, y:(sy/n+.5)/SH, pts:pts, n:n};
   }
   // least-squares circle through the string points, ignoring stray points: finds the hole in the ring
+  // pick the circle that most points agree on, so stray bits of string-coloured stuff can not drag the fit off
+  var rseed=12345; function rnd(){ rseed=(rseed*1103515245+12345)&0x7fffffff; return rseed/0x7fffffff }
+  function ransacRing(P){
+    var n=P.length, best=null, bestScore=0, it, i;
+    for(it=0;it<70;it++){
+      var a=P[Math.floor(rnd()*n)], b=P[Math.floor(rnd()*n)], c=P[Math.floor(rnd()*n)];
+      var d=2*(a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y)); if(Math.abs(d)<1e-3) continue;
+      var a2=a.x*a.x+a.y*a.y, b2=b.x*b.x+b.y*b.y, c2=c.x*c.x+c.y*c.y;
+      var ux=(a2*(b.y-c.y)+b2*(c.y-a.y)+c2*(a.y-b.y))/d, uy=(a2*(c.x-b.x)+b2*(a.x-c.x)+c2*(b.x-a.x))/d, r=Math.hypot(a.x-ux,a.y-uy);
+      if(r<BASE*.05||r>BASE*.65) continue;
+      var tol=Math.max(3,r*.05), inl=[], bins=[0,0,0,0,0,0,0,0,0,0,0,0], cov=0;
+      for(i=0;i<n;i++){ if(Math.abs(Math.hypot(P[i].x-ux,P[i].y-uy)-r)<=tol){ inl.push(P[i]); bins[Math.min(11,Math.floor((Math.atan2(P[i].y-uy,P[i].x-ux)+Math.PI)/6.2832*12))]=1 } }
+      for(i=0;i<12;i++) cov+=bins[i];
+      var score=inl.length*(.3+cov/12);
+      if(score>bestScore){ bestScore=score; best=inl }
+    }
+    return best;
+  }
   function fitRing(P){
     var n=P.length; if(n<14) return null;
-    var use=P, cx=0, cy=0, r=0, pass, i;
+    var use=ransacRing(P)||P, cx=0, cy=0, r=0, pass, i;
     for(pass=0;pass<3;pass++){
       var m=use.length; if(m<12) return null;
       var mx=0, my=0; for(i=0;i<m;i++){ mx+=use[i].x; my+=use[i].y } mx/=m; my/=m;
@@ -1058,16 +1124,17 @@
         ctx.strokeStyle='#ffc83d'; ctx.lineWidth=3; circle(cp.x,cp.y,22); ctx.stroke();
         var rgc=fitRing(t.pts.map(function(q){ return toCanvasPx(q[0],q[1]) }));
         if(rgc){ ctx.strokeStyle='#fffaf0'; ctx.lineWidth=2; ctx.setLineDash([8,7]); circle(rgc.x,rgc.y,rgc.r); ctx.stroke(); ctx.setLineDash([]) }
-        $('trkDot').className='dot on'; $('trkText').textContent='Tracking '+t.n+' points of string'+(rgc?'. Ring found, quality '+Math.round(rgc.q*100)+'%.':'. Make a ring to see it lock.');
+        $('trkDot').className='dot on'; $('trkText').textContent='Tracking '+t.n+' points of string'+(trk.bgN?' (ignoring '+Math.round(trk.bgN/10)+' room spots)':'')+(rgc?'. Ring found, quality '+Math.round(rgc.q*100)+'%.':'. Make a ring to see it lock.');
       } else { $('trkDot').className='dot'; $('trkText').textContent='No string found. Tap it on the screen to lock its color, or raise the sensitivity.'; }
     }
     ctx.restore();
   }
 
-  var last=performance.now();
+  var last=performance.now(), frameN=0;
   function frame(now){
     var dt=Math.min(.05,(now-last)/1000); last=now;
     updateAudio(now); step(now,dt); draw(now);
+    frameN++; if(mode==='camera'&&stream&&colorMode&&(frameN%4===0)&&((gated()&&!audio.isOn)||now<trk.learnUntil)) track(true);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -1276,6 +1343,8 @@
     }
   });
   view.addEventListener('pointerdown',function(e){ if(state==='calib'&&mode==='camera') pickColorAt(e.clientX,e.clientY) });
+  $('btnRoom').addEventListener('click',function(){ trk.learnUntil=performance.now()+1600; toast('Learning your room. Keep the Looplasso off and the phone still.',2200) });
+  $('btnRoomReset').addEventListener('click',function(){ forgetRoom(); toast('Forgot the room.',1200) });
   view.addEventListener('pointermove',function(e){ if(touchPt&&state==='play'&&mode==='touch') touchPt={x:e.clientX/W,y:e.clientY/H} });
   function endTouch(){ touchPt=null }
   view.addEventListener('pointerup',endTouch); view.addEventListener('pointercancel',endTouch);

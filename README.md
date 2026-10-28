@@ -17,7 +17,8 @@ Also see [Looplasso Loopers 360](../looplasso-loopers-360/), the VR / 360 versio
 ## How capturing works
 
 - Your Looplasso makes a ring of light with a hole in the middle. A Looper has to go **through the hole**: swing the ring so the Looper ends up inside it. Lift the ring off and do it again for the next point of progress.
-- The camera tracks the **whole string**, not just one spot. It fits a circle to the lit string to find the hole, so it works with thin, dim, far away, blown-out or partly hidden strings. Brightness thresholds adjust on their own. On the setup screen, tap your string to lock the color to exactly what the camera sees. In touch mode, draw a full loop around it with your finger.
+- The camera tracks the **whole string**, not just one spot. It fits a circle to the lit string to find the hole, so it works with thin, dim, far away, blown-out or partly hidden strings. Brightness thresholds adjust on their own. On the setup screen, tap your string to lock the color to exactly what the camera sees.
+- It ignores the rest of your house: solid blobs (lamps, screens, clothes), stray pieces far from the string and anything that stays lit in the same spot for about 10 seconds are dropped. It also learns your room whenever the lasso is off, and you can tap **Hide my room** on the setup screen (with the lasso off) to teach it on purpose. In touch mode, draw a full loop around it with your finger.
 - A Looper's heart flashes open now and then. Going through while it is open gives bonus points and extra time.
 - Passes close together build a combo (up to x5). Bubbles that hit your string snap it and break the combo.
 - Every mission you finish makes the next Loopers a bit faster.
