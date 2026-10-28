@@ -41,3 +41,7 @@ Open the page over https, then use "Add to Home Screen" (iPhone and Android) or 
 - Spend coins on **Worlds** in the menu. There are six: Mossy Meadow (free), Glimmer Caves, Ember Dunes, Frostbite Peaks, Stormcloud Isles and Starfall Void.
 - Each world has its own Loopers. The Loopers in later worlds need more loops (x1 up to x3.5) and get a bit more time.
 - The legendary Kaleidon appears in any world once you have met every other Looper.
+
+## About
+
+The menu has an **About** tab with the version, the authors and your browser (plus a few details about your device).

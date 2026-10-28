@@ -89,6 +89,18 @@
   .dexcell small{display:block;font-size:11px;font-weight:700;color:var(--ink);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dexcell em{display:block;font-style:normal;font-size:10px;color:var(--ink-soft)}
   select{flex:1 1 140px;font:inherit;font-weight:700;padding:10px 12px;border:2.5px solid var(--ink);border-radius:10px 12px 9px 11px;background:var(--paper-dark);color:var(--ink)}
+  .about{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+  .about li{display:block;background:var(--paper-dark);border:2px solid var(--ink);border-radius:9px 11px 8px 10px;padding:8px 12px;-webkit-tap-highlight-color:transparent;margin:0}
+  .about small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+  .about b{font-size:16px;font-weight:700}
+  .moreinfo{list-style:none;padding:0;margin:6px 0 0;font-size:13.5px}
+  .moreinfo li{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed rgba(26,42,50,.25)}
+  .card textarea,.card input[type=text],.card input[type=number]{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:2.5px solid var(--ink);border-radius:9px 11px 8px 10px;background:#fffaf0;color:var(--ink);margin-top:6px}
+  .card textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;resize:none}
+  .qr{display:block;width:min(260px,100%);image-rendering:pixelated;margin:8px auto;border:2.5px solid var(--ink);background:#fff;padding:6px}
+  .digits{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:.12em}
+  #scanVideo{position:static;left:auto;width:100%;height:auto;border:2.5px solid var(--ink);border-radius:10px;background:#000;margin-top:8px}
+  .log{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--ink-soft)}
   .coinline{font-weight:800;color:var(--ink)!important}
   .coinline i{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);vertical-align:-2px;margin-right:5px}
   .worlds{display:grid;gap:12px;margin-top:12px}
@@ -160,6 +172,7 @@
     <button id="btnInv">Inventory</button>
     <button id="btnDex">Looperdex</button>
     <button id="btnBday">Birthday</button>
+    <button id="btnAbout">About</button>
   </div>
   <div class="row" id="menuWaitBtns" hidden>
     <button class="primary" id="btnResume">Continue anyway</button>
@@ -233,6 +246,69 @@
     <select id="bdDay" aria-label="Day"></select>
   </div>
   <div class="row"><button class="primary" id="btnBdaySave">Save</button><button id="btnBdaySkip">Skip</button></div>
+</div>
+<div class="card" id="aboutCard" hidden>
+  <h1>About <span>Loopers</span></h1>
+  <ul class="about">
+    <li id="aboutVerRow"><small>Version</small><b id="aboutVersion"></b></li>
+    <li id="aboutAuthRow"><small>Authors</small><b>luvdisc51 and Claude</b></li>
+    <li><small>Your browser</small><b id="aboutBrowser"></b></li>
+  </ul>
+  <details class="how"><summary>More about this device</summary><ul class="moreinfo" id="aboutMore"></ul></details>
+  <p>An unofficial fan game, not affiliated with Loop Labs.</p>
+  <div class="row"><button class="primary" id="btnAboutClose">Back</button></div>
+</div>
+<div class="card" id="adminCard" hidden>
+  <h1>Admin <span>mode</span></h1>
+  <p class="status"><i class="dot" id="admDot"></i><span id="admStatus">Not connected</span></p>
+  <div id="admPair">
+    <p>Both devices must be on the same wifi. On the other device open About, tap Version 3 times and wait for its code.</p>
+    <textarea id="admPaste" rows="3" placeholder="Paste the other device's code here"></textarea>
+    <div class="row"><button id="btnAdmScan">Scan code</button><button class="primary" id="btnAdmConnect">Connect</button></div>
+    <div id="admAnswer" hidden>
+      <p>Now show this code to the other device. It scans it or pastes it.</p>
+      <img id="admQR" class="qr" alt="" hidden>
+      <textarea id="admCode" rows="3" readonly></textarea>
+      <div class="row"><button id="btnAdmCopy">Copy code</button></div>
+    </div>
+  </div>
+  <div id="admSend" hidden>
+    <p>Check that both screens show <span class="digits" id="admVerify"></span></p>
+    <input type="text" id="admFilter" placeholder="Search Loopers by name or number" aria-label="Search Loopers">
+    <select id="admLooper" aria-label="Looper"></select>
+    <input type="number" id="admQty" min="1" max="9999" value="1" aria-label="Quantity">
+    <div class="row"><button class="primary" id="btnAdmSend">Send</button></div>
+    <ul class="log" id="admLog"></ul>
+  </div>
+  <div class="row"><button id="btnAdmDisc">Disconnect</button><button id="btnAdmClose">Back</button></div>
+</div>
+<div class="card" id="recvCard" hidden>
+  <h1>Receive <span>Loopers</span></h1>
+  <p class="status"><i class="dot" id="rcvDot"></i><span id="rcvStatus">Getting ready...</span></p>
+  <div id="rcvPair">
+    <p>Both devices must be on the same wifi. Show this code to the admin device. It scans it or pastes it, then shows a code back.</p>
+    <img id="rcvQR" class="qr" alt="" hidden>
+    <textarea id="rcvCode" rows="3" readonly></textarea>
+    <div class="row"><button id="btnRcvCopy">Copy code</button></div>
+    <textarea id="rcvPaste" rows="3" placeholder="Paste the admin's code here"></textarea>
+    <div class="row"><button id="btnRcvScan">Scan code</button><button class="primary" id="btnRcvConnect">Connect</button></div>
+  </div>
+  <div id="rcvLive" hidden>
+    <p>Check that both screens show <span class="digits" id="rcvVerify"></span></p>
+    <p id="rcvWait">Waiting for a gift...</p>
+    <div id="rcvGift" hidden>
+      <p><b id="rcvGiftText"></b></p>
+      <div class="row"><button class="primary" id="btnRcvAccept">Accept</button><button id="btnRcvDecline">Decline</button></div>
+    </div>
+    <ul class="log" id="rcvLog"></ul>
+  </div>
+  <div class="row"><button id="btnRcvDisc">Disconnect</button><button id="btnRcvClose">Back</button></div>
+</div>
+<div class="card" id="scanCard" hidden>
+  <h1>Scan <span>code</span></h1>
+  <p id="scanMsg">Point the camera at the other device's code.</p>
+  <video id="scanVideo" playsinline muted></video>
+  <div class="row"><button id="btnScanCancel">Cancel</button></div>
 </div>
 <div class="card" id="dex" hidden>
   <h1>Looper<span>dex</span></h1>
@@ -1313,6 +1389,283 @@
   $('btnInv').addEventListener('click',function(){ openInv('start') });
   $('btnInv2').addEventListener('click',function(){ openInv('over') });
   $('btnInvClose').addEventListener('click',function(){ show('invCard',false); show(invFrom,true) });
+  /* ---------- about, admin and receive ---------- */
+  var VERSION='0.9.0 indev';
+  function browserInfo(){
+    var ua=navigator.userAgent||'', m, name='Unknown browser', ver='';
+    if((m=/(Edg|EdgA|EdgiOS)\/([\d.]+)/.exec(ua))){ name='Edge'; ver=m[2] }
+    else if((m=/OPR\/([\d.]+)/.exec(ua))){ name='Opera'; ver=m[1] }
+    else if((m=/(Firefox|FxiOS)\/([\d.]+)/.exec(ua))){ name='Firefox'; ver=m[2] }
+    else if((m=/(Chrome|CriOS)\/([\d.]+)/.exec(ua))){ name='Chrome'; ver=m[2] }
+    else if((m=/Version\/([\d.]+).*Safari/.exec(ua))){ name='Safari'; ver=m[1] }
+    var os='Unknown system';
+    if(/Android/.test(ua)){ m=/Android ([\d.]+)/.exec(ua); os='Android'+(m?' '+m[1]:'') }
+    else if(/iPhone|iPad|iPod/.test(ua)){ m=/OS (\d+)[_\d]*/.exec(ua); os='iOS'+(m?' '+m[1]:'') }
+    else if(/Windows/.test(ua)) os='Windows'; else if(/CrOS/.test(ua)) os='ChromeOS'; else if(/Mac OS X/.test(ua)) os='macOS'; else if(/Linux/.test(ua)) os='Linux';
+    return {name:name,ver:ver?ver.split('.')[0]:'',os:os};
+  }
+  function renderAbout(){
+    $('aboutVersion').textContent=VERSION;
+    var bi=browserInfo(); $('aboutBrowser').textContent=bi.name+(bi.ver?' '+bi.ver:'')+' on '+bi.os;
+    var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||(window.matchMedia&&matchMedia('(display-mode: fullscreen)').matches)||navigator.standalone;
+    var rows=[['Screen',screen.width+' x '+screen.height+' at '+(window.devicePixelRatio||1)+'x'],['Secure page (https)',window.isSecureContext?'Yes':'No'],
+      ['Camera available',(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)?'Yes':'No'],['Microphone available',(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)?'Yes':'No'],
+      ['Device linking',window.RTCPeerConnection?'Yes':'No'],['VR (WebXR)',navigator.xr?'Yes':'No'],['Installed as an app',standalone?'Yes':'No'],['Online',navigator.onLine?'Yes':'No']];
+    var ul=$('aboutMore'); ul.innerHTML='';
+    rows.forEach(function(r){ var li=document.createElement('li'), a=document.createElement('span'), b=document.createElement('b'); a.textContent=r[0]; b.textContent=r[1]; li.appendChild(a); li.appendChild(b); ul.appendChild(li) });
+  }
+  var aboutFrom='start';
+  function openAbout(from){ aboutFrom=from; show(from,false); show('aboutCard',true); renderAbout(); tapA=0; tapV=0 }
+  $('btnAbout').addEventListener('click',function(){ openAbout('start') });
+  $('btnAboutClose').addEventListener('click',function(){ show('aboutCard',false); show(aboutFrom,true) });
+  // hidden doors: no hint, no sound, no message while tapping
+  var tapA=0, tapV=0, tapAT=0, tapVT=0;
+  $('aboutAuthRow').addEventListener('click',function(){
+    var now=Date.now(); tapA=(now-tapAT>2500)?1:tapA+1; tapAT=now; tapV=0;
+    if(tapA>=9){ tapA=0; show('aboutCard',false); openAdmin() }
+  });
+  $('aboutVerRow').addEventListener('click',function(){
+    var now=Date.now(); tapV=(now-tapVT>2500)?1:tapV+1; tapVT=now; tapA=0;
+    if(tapV>=3){ tapV=0; show('aboutCard',false); openReceive() }
+  });
+
+  /* direct device link: WebRTC with no internet servers, so it only works between devices on the same network */
+  var link={pc:null,dc:null,role:'',open:false,offerSdp:'',answerSdp:''};
+  function loadScript(src){ return new Promise(function(res,rej){ if(document.querySelector('script[src="'+src+'"]')) return res(); var sc=document.createElement('script'); sc.src=src; sc.onload=res; sc.onerror=function(){ rej(new Error('load failed')) }; document.head.appendChild(sc) }) }
+  function b64url(bytes){ var s2=''; for(var i=0;i<bytes.length;i++) s2+=String.fromCharCode(bytes[i]); return btoa(s2).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'') }
+  function unb64url(t){ t=t.replace(/-/g,'+').replace(/_/g,'/'); while(t.length%4) t+='='; var bin=atob(t), out=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out }
+  function streamBytes(bytes,TransformCtor,fmt){
+    var st=new TransformCtor(fmt), w=st.writable.getWriter(); w.write(bytes); w.close();
+    return new Response(st.readable).arrayBuffer().then(function(b){ return new Uint8Array(b) });
+  }
+  function slimSdp(sdp){
+    var lines=sdp.split(/\r?\n/).filter(Boolean), cands=[], rest=[];
+    lines.forEach(function(l){ if(l.indexOf('a=candidate:')===0) cands.push(l); else if(l!=='a=end-of-candidates') rest.push(l) });
+    var v4=cands.filter(function(l){ var f=l.split(' '); return f[2]&&f[2].toLowerCase()==='udp'&&f[4]&&f[4].indexOf(':')<0 });
+    var use=(v4.length?v4:cands).slice(0,3);
+    return rest.concat(use).join('\r\n')+'\r\n';
+  }
+  function pack(sdp,type){
+    var bytes=new TextEncoder().encode(sdp);
+    if(window.CompressionStream) return streamBytes(bytes,CompressionStream,'deflate-raw').then(function(z){ return 'LL1'+type+'z'+b64url(z) });
+    return Promise.resolve('LL1'+type+'p'+b64url(bytes));
+  }
+  function unpack(code,wantType){
+    code=(code||'').replace(/\s+/g,'');
+    if(code.indexOf('LL1')!==0) return Promise.reject(new Error('That is not a Looper link code.'));
+    var type=code.charAt(3), mode=code.charAt(4), body=code.slice(5);
+    if(type!==wantType) return Promise.reject(new Error(wantType==='o'?'That is the wrong code. Paste the code from the receiving device.':'That is the wrong code. Paste the code from the admin device.'));
+    try{
+      var bytes=unb64url(body);
+      if(mode==='z'){
+        if(!window.DecompressionStream) return Promise.reject(new Error('This browser cannot read that code.'));
+        return streamBytes(bytes,DecompressionStream,'deflate-raw').then(function(u){ return new TextDecoder().decode(u) });
+      }
+      return Promise.resolve(new TextDecoder().decode(bytes));
+    }catch(e){ return Promise.reject(new Error('The code looks damaged. Try again.')) }
+  }
+  function fingerprint(sdp){ var m=/a=fingerprint:\S+ (\S+)/.exec(sdp); return m?m[1]:'' }
+  function verifyDigits(offer,answer){
+    return crypto.subtle.digest('SHA-256',new TextEncoder().encode(fingerprint(offer)+'|'+fingerprint(answer))).then(function(h){
+      var v=new Uint8Array(h), n=((v[0]<<24)|(v[1]<<16)|(v[2]<<8)|v[3])>>>0; return String(n%10000).padStart(4,'0');
+    });
+  }
+  function newPC(){
+    closeLink();
+    // no STUN or TURN servers on purpose: the two devices can only reach each other directly on the local network
+    var pc=new RTCPeerConnection({iceServers:[]}); link.pc=pc;
+    pc.onconnectionstatechange=function(){ if(pc!==link.pc) return; if(pc.connectionState==='failed'||pc.connectionState==='disconnected'||pc.connectionState==='closed') linkState('Disconnected. Are both devices on the same wifi?',false) };
+    return pc;
+  }
+  function gatherDone(pc){
+    return new Promise(function(res){
+      if(pc.iceGatheringState==='complete') return res();
+      var t=setTimeout(done,3500);
+      function done(){ clearTimeout(t); pc.removeEventListener('icegatheringstatechange',h); res() }
+      function h(){ if(pc.iceGatheringState==='complete') done() }
+      pc.addEventListener('icegatheringstatechange',h);
+    });
+  }
+  function closeLink(){
+    try{ if(link.dc) link.dc.close() }catch(e){} try{ if(link.pc) link.pc.close() }catch(e){}
+    link.pc=null; link.dc=null; link.open=false;
+  }
+  function isPrivate(addr){
+    if(!addr) return true;                       // browser hid it: with no internet servers it can only be local
+    if(/\.local$/i.test(addr)) return true;
+    var m=/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(addr); if(!m) return /^(fe80|fc|fd)/i.test(addr);
+    var a=+m[1], b=+m[2];
+    return a===10||(a===172&&b>=16&&b<=31)||(a===192&&b===168)||(a===169&&b===254)||a===127||(a===100&&b>=64&&b<=127);
+  }
+  function checkLan(){
+    return link.pc.getStats().then(function(stats){
+      var pair=null, byId={}; stats.forEach(function(r){ byId[r.id]=r });
+      stats.forEach(function(r){ if(r.type==='candidate-pair'&&(r.nominated||r.selected)&&r.state==='succeeded') pair=r });
+      if(!pair) return true;
+      var rc=byId[pair.remoteCandidateId], lc=byId[pair.localCandidateId];
+      var bad=function(c){ return c&&((c.candidateType&&c.candidateType!=='host')||!isPrivate(c.address||c.ip)) };
+      return !(bad(rc)||bad(lc));
+    }).catch(function(){ return true });
+  }
+  var linkUI={admin:null,recv:null};
+  function linkState(msg,ok){
+    var o=link.role==='admin'?{dot:'admDot',txt:'admStatus'}:{dot:'rcvDot',txt:'rcvStatus'};
+    if(!link.role) return;
+    $(o.dot).className='dot'+(ok?' on':''); $(o.txt).textContent=msg;
+  }
+  function wireChannel(dc){
+    link.dc=dc;
+    dc.onopen=function(){
+      checkLan().then(function(ok){
+        if(!ok){ closeLink(); linkState('Both devices need to be on the same wifi. Link refused.',false); return }
+        link.open=true; linkState('Connected on your wifi',true); onLinked();
+      });
+    };
+    dc.onclose=function(){ link.open=false; linkState('Disconnected',false) };
+    dc.onmessage=function(e){ if(typeof e.data!=='string'||e.data.length>2000) return; var m; try{ m=JSON.parse(e.data) }catch(x){ return } onLinkMessage(m) };
+  }
+  function sendMsg(o){ if(link.dc&&link.dc.readyState==='open') link.dc.send(JSON.stringify(o)) }
+  function showCode(imgId,boxId,text){
+    $(boxId).value=text;
+    var img=$(imgId); img.hidden=true;
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js').then(function(){
+      var qr=qrcode(0,'L'); qr.addData(text); qr.make(); img.src=qr.createDataURL(4,2); img.hidden=false;
+    }).catch(function(){ /* offline: the code can still be copied and pasted */ });
+  }
+  function copyCode(boxId){ var t=$(boxId); t.focus(); t.select(); try{ document.execCommand('copy'); toast('Copied.',900) }catch(e){ toast('Select the code and copy it.',1500) } }
+
+  // ----- scanning a code with the camera -----
+  var scan={stream:null,timer:0,from:'',cb:null,det:null};
+  function stopScan(){
+    clearInterval(scan.timer); if(scan.stream){ scan.stream.getTracks().forEach(function(t){ t.stop() }); scan.stream=null }
+    var v=$('scanVideo'); try{ v.pause(); v.srcObject=null }catch(e){}
+  }
+  function openScan(from,cb){
+    scan.from=from; scan.cb=cb; show(from,false); show('scanCard',true); $('scanMsg').textContent='Point the camera at the other device\'s code.';
+    var useNative=('BarcodeDetector' in window);
+    var ready=useNative?Promise.resolve():loadScript('https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js');
+    ready.then(function(){
+      if(useNative){ try{ scan.det=new BarcodeDetector({formats:['qr_code']}) }catch(e){ scan.det=null } }
+      return navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    }).then(function(st){
+      scan.stream=st; var v=$('scanVideo'); v.srcObject=st; return v.play();
+    }).then(function(){
+      var cv=document.createElement('canvas'), cx=cv.getContext('2d',{willReadFrequently:true}), v=$('scanVideo'), busy=false;
+      scan.timer=setInterval(function(){
+        if(busy||v.readyState<2||!v.videoWidth) return; busy=true;
+        var done=function(val){ busy=false; if(val){ stopScan(); show('scanCard',false); show(scan.from,true); scan.cb(val) } };
+        if(scan.det){ scan.det.detect(v).then(function(r){ done(r&&r[0]&&r[0].rawValue) }).catch(function(){ busy=false }) }
+        else if(window.jsQR){
+          cv.width=Math.min(640,v.videoWidth); cv.height=Math.round(cv.width*v.videoHeight/v.videoWidth); cx.drawImage(v,0,0,cv.width,cv.height);
+          var im=cx.getImageData(0,0,cv.width,cv.height), r=jsQR(im.data,im.width,im.height); done(r&&r.data);
+        } else busy=false;
+      },220);
+    }).catch(function(){ $('scanMsg').textContent='Could not scan. You can paste the code instead.' });
+  }
+  $('btnScanCancel').addEventListener('click',function(){ stopScan(); show('scanCard',false); show(scan.from,true) });
+
+  // ----- admin side -----
+  var adminOpen=false;
+  function fillLooperList(){
+    var q=($('admFilter').value||'').trim().toLowerCase(), sel=$('admLooper'), keep=sel.value; sel.innerHTML='';
+    LOOPERS.forEach(function(sp){
+      var label='#'+(sp.idx<10?'00':sp.idx<100?'0':'')+sp.idx+'  '+sp.name;
+      if(q&&label.toLowerCase().indexOf(q)<0) return;
+      var o=document.createElement('option'); o.value=sp.id; o.textContent=label; sel.appendChild(o);
+    });
+    if(keep&&Array.prototype.some.call(sel.options,function(o){ return o.value===keep })) sel.value=keep;
+  }
+  function openAdmin(){
+    adminOpen=true; link.role='admin'; closeLink(); show('adminCard',true); show('admPair',true); show('admAnswer',false); show('admSend',false);
+    $('admPaste').value=''; $('admCode').value=''; $('admLog').innerHTML=''; linkState('Not connected',false); fillLooperList();
+  }
+  $('admFilter').addEventListener('input',fillLooperList);
+  function adminConnect(raw){
+    if(!window.RTCPeerConnection){ linkState('This browser cannot link devices.',false); return }
+    linkState('Connecting...',false);
+    unpack(raw,'o').then(function(sdp){
+      link.offerSdp=sdp; var pc=newPC(); link.role='admin';
+      pc.ondatachannel=function(e){ wireChannel(e.channel) };
+      return pc.setRemoteDescription({type:'offer',sdp:sdp}).then(function(){ return pc.createAnswer() }).then(function(a){ return pc.setLocalDescription(a) }).then(function(){ return gatherDone(pc) }).then(function(){
+        link.answerSdp=slimSdp(pc.localDescription.sdp); return pack(link.answerSdp,'a');
+      });
+    }).then(function(code){
+      show('admAnswer',true); showCode('admQR','admCode',code); linkState('Waiting for the other device to enter your code...',false);
+    }).catch(function(err){ linkState(err&&err.message?err.message:'Could not connect.',false) });
+  }
+  $('btnAdmConnect').addEventListener('click',function(){ adminConnect($('admPaste').value) });
+  $('btnAdmScan').addEventListener('click',function(){ openScan('adminCard',function(v){ $('admPaste').value=v; adminConnect(v) }) });
+  $('btnAdmCopy').addEventListener('click',function(){ copyCode('admCode') });
+  $('btnAdmSend').addEventListener('click',function(){
+    var id=$('admLooper').value, qty=parseInt($('admQty').value,10);
+    if(!id||!(qty>=1)||qty>9999){ toast('Pick a Looper and a quantity from 1 to 9999.',1800); return }
+    if(!link.open){ toast('Not connected yet.',1400); return }
+    var n=Date.now()+'-'+Math.floor(Math.random()*1e6); pendingSend[n]={id:id,qty:qty};
+    sendMsg({t:'gift',id:id,qty:qty,n:n}); logLine('admLog','Sent '+qty+' x '+LOOPERS.filter(function(l){ return l.id===id })[0].name+'. Waiting for the other device...',n);
+  });
+  var pendingSend={};
+  function logLine(ul,text,key){ var li=document.createElement('li'); li.textContent=text; if(key) li.setAttribute('data-k',key); $(ul).insertBefore(li,$(ul).firstChild) }
+  $('btnAdmDisc').addEventListener('click',function(){ closeLink(); openAdmin() });
+  $('btnAdmClose').addEventListener('click',function(){ closeLink(); adminOpen=false; link.role=''; show('adminCard',false); renderAbout(); show('aboutCard',true) });
+
+  // ----- receiver side -----
+  var rcvQueue=[], rcvCur=null;
+  function openReceive(){
+    link.role='recv'; closeLink(); show('recvCard',true); show('rcvPair',true); show('rcvLive',false); show('rcvGift',false);
+    $('rcvPaste').value=''; $('rcvCode').value=''; $('rcvLog').innerHTML=''; $('rcvQR').hidden=true; rcvQueue=[]; rcvCur=null;
+    if(!window.RTCPeerConnection){ linkState('This browser cannot link devices.',false); return }
+    linkState('Getting your code ready...',false);
+    var pc=newPC(); link.role='recv'; wireChannel(pc.createDataChannel('loopers'));
+    pc.createOffer().then(function(o){ return pc.setLocalDescription(o) }).then(function(){ return gatherDone(pc) }).then(function(){
+      link.offerSdp=slimSdp(pc.localDescription.sdp); return pack(link.offerSdp,'o');
+    }).then(function(code){ showCode('rcvQR','rcvCode',code); linkState('Show this code to the admin device.',false) })
+    .catch(function(){ linkState('Could not make a code in this browser.',false) });
+  }
+  function receiverConnect(raw){
+    if(!link.pc) return;
+    unpack(raw,'a').then(function(sdp){ link.answerSdp=sdp; linkState('Connecting...',false); return link.pc.setRemoteDescription({type:'answer',sdp:sdp}) })
+      .catch(function(err){ linkState(err&&err.message?err.message:'Could not connect.',false) });
+  }
+  $('btnRcvConnect').addEventListener('click',function(){ receiverConnect($('rcvPaste').value) });
+  $('btnRcvScan').addEventListener('click',function(){ openScan('recvCard',function(v){ $('rcvPaste').value=v; receiverConnect(v) }) });
+  $('btnRcvCopy').addEventListener('click',function(){ copyCode('rcvCode') });
+  $('btnRcvDisc').addEventListener('click',function(){ closeLink(); openReceive() });
+  $('btnRcvClose').addEventListener('click',function(){ closeLink(); link.role=''; show('recvCard',false); renderAbout(); show('aboutCard',true) });
+  function nextGift(){
+    if(rcvCur||!rcvQueue.length){ if(!rcvCur) show('rcvGift',false); return }
+    rcvCur=rcvQueue.shift(); var sp=LOOPERS.filter(function(l){ return l.id===rcvCur.id })[0];
+    $('rcvGiftText').textContent='The admin wants to send you '+rcvCur.qty+' x '+sp.name+' (#'+sp.idx+').'; show('rcvGift',true); $('rcvWait').hidden=true;
+  }
+  function answerGift(ok){
+    if(!rcvCur) return; var g=rcvCur, sp=LOOPERS.filter(function(l){ return l.id===g.id })[0]; rcvCur=null;
+    if(ok){
+      inv[g.id]=Math.min(999999,(inv[g.id]||0)+g.qty); dexAdd(g.id); saveInv();
+      logLine('rcvLog','Got '+g.qty+' x '+sp.name+'.'); toast('Received '+g.qty+' x '+sp.name,1800);
+    } else logLine('rcvLog','Declined '+g.qty+' x '+sp.name+'.');
+    sendMsg({t:'ack',n:g.n,ok:!!ok}); show('rcvGift',false); $('rcvWait').hidden=false; nextGift();
+  }
+  $('btnRcvAccept').addEventListener('click',function(){ answerGift(true) });
+  $('btnRcvDecline').addEventListener('click',function(){ answerGift(false) });
+  function onLinked(){
+    var offer=link.offerSdp, answer=link.answerSdp;
+    verifyDigits(offer,answer).then(function(d){
+      if(link.role==='admin'){ show('admPair',false); show('admSend',true); $('admVerify').textContent=d }
+      else { show('rcvPair',false); show('rcvLive',true); $('rcvVerify').textContent=d }
+    });
+  }
+  function onLinkMessage(m){
+    if(!m||typeof m.t!=='string') return;
+    if(m.t==='gift'&&link.role==='recv'){
+      var qty=m.qty, known=LOOPERS.filter(function(l){ return l.id===m.id })[0];
+      if(!known||typeof m.n!=='string'||m.n.length>40||!(Number.isInteger(qty)&&qty>=1&&qty<=9999)){ return }
+      rcvQueue.push({id:m.id,qty:qty,n:m.n}); nextGift();
+    } else if(m.t==='ack'&&link.role==='admin'&&typeof m.n==='string'&&pendingSend[m.n]){
+      var g=pendingSend[m.n]; delete pendingSend[m.n];
+      var li=$('admLog').querySelector('li[data-k="'+m.n.replace(/[^0-9-]/g,'')+'"]');
+      var nm=LOOPERS.filter(function(l){ return l.id===g.id })[0].name;
+      if(li) li.textContent=(m.ok?'Delivered ':'Declined ')+g.qty+' x '+nm+'.';
+    }
+  }
   refreshWorldUI(); refreshBday();
   if(!bdayStr&&!bdaySkipped){ bdayFrom='start'; show('start',false); show('bdayCard',true) }
   function openDex(from){
