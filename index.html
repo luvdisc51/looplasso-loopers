@@ -148,12 +148,11 @@
   <label>Sensitivity <input type="range" id="sens" min="1" max="100" value="50" aria-label="Sensitivity"></label>
   <div class="audiobox">
     <b>Lasso sound</b>
-    <p>The game listens to your Looplasso to know when it is on. Hold it near the phone's microphone and record it off, then on.</p>
+    <p>The game listens to your Looplasso to know when it is on. Off counts as silence, so there is nothing to record for it. Switch your Looplasso on, hold it near the phone's microphone and tap Listen to ON.</p>
     <div class="meter" id="calMeter"><i></i><u></u></div>
     <p class="status" id="audioStatus">Not set up yet.</p>
     <div class="row">
-      <button id="btnRecOff">Record OFF</button>
-      <button id="btnRecOn">Record ON</button>
+      <button id="btnRecOn">Listen to ON</button>
       <button id="btnSkipAudio">Skip sound</button>
     </div>
   </div>
@@ -786,20 +785,16 @@
     startMic().then(function(){
       var now=performance.now();
       audio.enabled=false; audio.isOn=false; refreshGo();
-      audio.rec={kind:kind,samples:[],from:now+350,until:now+2350,label:kind==='off'?'Listening with lasso OFF':'Listening with lasso ON'};
+      audio.rec={kind:'on',samples:[],from:now+350,until:now+2350,label:'Listening with lasso ON'};
     }).catch(function(err){ audioMsg((err&&err.message)?err.message:'Could not open the microphone.') });
   }
   function finishRec(){
     var r=audio.rec; audio.rec=null;
     var m=r.samples.length?r.samples.reduce(function(a,b){return a+b},0)/r.samples.length:0;
-    if(r.kind==='off') audio.off=m; else audio.on=m;
-    if(audio.off!==null&&audio.on!==null){
-      var gap=audio.on-audio.off;
-      if(gap<4){ audio.enabled=false; audioMsg('Could not hear a difference. Move the lasso closer to the mic and record again.') }
-      else { audio.hi=audio.off+gap*.6; audio.lo=audio.off+gap*.35; audio.enabled=true; audio.isOn=false; audio.above=0; audio.below=0; audioSkipped=false; $('btnSkipAudio').textContent='Skip sound'; audioMsg('Sound detection ready. Heard OFF and ON.') }
-    } else {
-      audioMsg(r.kind==='off'?'OFF recorded. Now switch it on and record ON.':'ON recorded. Now switch it off and record OFF.');
-    }
+    // OFF is simply silence (level 0), so only the ON sound is measured
+    audio.on=m; audio.off=0;
+    if(m<4){ audio.enabled=false; audioMsg('Could not hear your Looplasso. Switch it on, move it closer to the mic and try again.') }
+    else { audio.hi=m*.5; audio.lo=m*.25; audio.enabled=true; audio.isOn=false; audio.above=0; audio.below=0; audioSkipped=false; $('btnSkipAudio').textContent='Skip sound'; audioMsg('Sound detection ready. Silence means off.') }
     refreshGo();
   }
   function updateAudio(now){
@@ -905,7 +900,6 @@
   $('btnGo').addEventListener('click',startMission);
   $('btnAgain').addEventListener('click',startMission);
   $('btnRecal').addEventListener('click',function(){ if(mode==='camera') setState('calib'); else setState('start') });
-  $('btnRecOff').addEventListener('click',function(){ record('off') });
   $('btnRecOn').addEventListener('click',function(){ record('on') });
   $('btnSkipAudio').addEventListener('click',function(){
     audioSkipped=!audioSkipped;
