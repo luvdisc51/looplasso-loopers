@@ -1,5 +1,7 @@
 # Looplasso Loopers
 
+> **In development (indev).** This game is a work in progress. Things will change and break.
+
 A browser game where your real glowing string loop is the controller. Befriend 51 Loopers by looping the string around them. Unofficial fan game, not affiliated with Loop Labs.
 
 - Pick your string color (RGB, red, green or blue) so the camera can find it.
