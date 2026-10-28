@@ -53,6 +53,12 @@
   .colors button{display:flex;align-items:center;gap:10px;text-align:left;min-width:0}
   .colors button small{margin-left:auto;font-size:11px;color:var(--ink-soft);font-weight:500}
   .colors button[aria-pressed="true"]{background:var(--sun)}
+  .colors.four{grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+  .colors.four button{padding:8px 4px;min-height:42px;font-size:14px;gap:6px;justify-content:center}
+  .how{margin:10px 0 4px}
+  .how summary{cursor:pointer;font-weight:700;color:var(--ink);padding:6px 0}
+  .menucolors{margin-top:14px}
+  .menucolors .lbl{display:block;font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
   .sw{width:18px;height:18px;border-radius:50%;flex:none;display:inline-block;border:2px solid var(--ink)}
   .rgbsw{background:conic-gradient(#ff3b3b,#ffe23b,#2dff6e,#3bd9ff,#3b7bff,#d03bff,#ff3b3b)}
   .meter{height:12px;border-radius:99px;background:var(--paper-dark);position:relative;overflow:hidden;margin-top:10px;border:2.5px solid var(--ink)}
@@ -92,6 +98,7 @@
   <h1>Looplasso <span>Loopers</span></h1>
   <div id="menuRules">
     <p>Wild Loopers are loose in your room. Befriend them by looping your glowing string around them.</p>
+    <details class="how"><summary>How to play</summary>
     <ul>
       <li><b>Circle a Looper.</b> Draw a full loop that closes around it. Every loop fills its friendship ring.</li>
       <li><b>Fill the ring</b> before the clock runs out. It drains if you stop.</li>
@@ -99,7 +106,7 @@
       <li>Keep your glow off the Looper itself. Touching it hurts too.</li>
       <li><b>51 different Loopers</b> live out there. Each mission meets five. Befriend them all to fill your Looperdex.</li>
       <li><b>Switch your Looplasso on</b> to play. Switch it off and the game pauses here.</li>
-    </ul>
+    </ul></details>
     <p>An unofficial fan game, not affiliated with Loop Labs. Best in a dim room.</p>
     <p><a href="../looplasso-loopers-360/">Try Looplasso Loopers 360 (VR)</a></p>
   </div>
@@ -107,6 +114,15 @@
     <p class="status"><i class="dot" id="waitDot"></i><span id="waitText">Looplasso is off</span></p>
     <p id="waitSub">Switch it on to continue.</p>
     <div id="meterWrap"><div class="meter" id="menuMeter"><i></i><u></u></div></div>
+  </div>
+  <div class="menucolors" id="menuColors">
+    <span class="lbl">String color</span>
+    <div class="colors four" id="colors2" role="group" aria-label="String color">
+      <button data-c="rgb" aria-pressed="false"><i class="sw rgbsw"></i>RGB</button>
+      <button data-c="red" aria-pressed="false"><i class="sw" style="background:#ff3b3b"></i>Red</button>
+      <button data-c="green" aria-pressed="false"><i class="sw" style="background:#2dff6e"></i>Green</button>
+      <button data-c="blue" aria-pressed="false"><i class="sw" style="background:#3b7bff"></i>Blue</button>
+    </div>
   </div>
   <div class="row" id="menuSetup">
     <button class="primary" id="btnCam">Use camera</button>
@@ -869,15 +885,16 @@
 
   function setColor(c){
     colorMode=c; refreshGo();
-    var bs=document.querySelectorAll('#colors button');
+    if(c){ try{ localStorage.setItem('looplasso-color',c) }catch(e){} }
+    var bs=document.querySelectorAll('#colors button, #colors2 button');
     for(var i=0;i<bs.length;i++) bs[i].setAttribute('aria-pressed',bs[i].getAttribute('data-c')===c?'true':'false');
   }
-  document.querySelectorAll('#colors button').forEach(function(b){
+  document.querySelectorAll('#colors button, #colors2 button').forEach(function(b){
     b.addEventListener('click',function(){ setColor(b.getAttribute('data-c')) });
   });
   $('btnCam').addEventListener('click',function(){
     mode='camera'; $('err').hidden=true;
-    startCamera().then(function(){ setColor(null); setState('calib') })
+    startCamera().then(function(){ setColor(colorMode); setState('calib') })
     .catch(function(err){ $('err').textContent=(err&&err.message)?err.message:'Could not open the camera.'; $('err').hidden=false });
   });
   $('btnTouch').addEventListener('click',function(){ mode='touch'; stopCamera(); player.seen=false; newMission(); setState('play') });
@@ -905,6 +922,8 @@
       if(state==='play'&&paused&&gated()&&audio.isOn) resume();
     }
   });
+
+  try{ var savedColor=localStorage.getItem('looplasso-color'); if(['rgb','red','green','blue'].indexOf(savedColor)>=0) setColor(savedColor) }catch(e){}
 
   // expose geometry for quick self-tests
   window.__loopers={segInter:segInter,inPoly:inPoly,minEdgeDist:minEdgeDist};
