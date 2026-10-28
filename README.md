@@ -10,7 +10,7 @@ A browser game where your real glowing string loop is the controller. Befriend 1
 
 ## Running it
 
-The camera and microphone need a secure page. Turn on GitHub Pages for this repo (Settings, Pages, deploy from the main branch) and open the link on your phone.
+The camera and microphone need a secure page. Open the link on your phone.
 
 Also see [Looplasso Loopers 360](../looplasso-loopers-360/), the VR / 360 version. The Looperdex is shared between the two when both are served from the same address.
 
