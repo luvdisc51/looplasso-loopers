@@ -24,3 +24,10 @@ Also see [Looplasso Loopers 360](../looplasso-loopers-360/), the VR / 360 versio
 ## Install as an app (PWA)
 
 Open the page over https, then use "Add to Home Screen" (iPhone and Android) or the install button in Chrome. It runs full screen and works offline after the first visit. Icons are in `icons/`.
+
+## Coins and worlds
+
+- Threads, loops and befriending Loopers earn coins (more with a combo). Coins are saved on your device.
+- Spend coins on **Worlds** in the menu. There are six: Mossy Meadow (free), Glimmer Caves, Ember Dunes, Frostbite Peaks, Stormcloud Isles and Starfall Void.
+- Each world has its own Loopers. The Loopers in later worlds need more loops (x1 up to x3.5) and get a bit more time.
+- The legendary Kaleidon appears in any world once you have met every other Looper.
