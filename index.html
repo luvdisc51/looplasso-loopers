@@ -114,7 +114,7 @@
       <li><b>Fill the ring</b> before the clock runs out. It drains if you stop.</li>
       <li><b>Dodge the bubbles.</b> A bubble that hits your line snaps it, breaks your combo and costs ring progress.</li>
       <li>Each mission you finish makes the next Loopers faster.</li>
-      <li><b>51 different Loopers</b> live out there. Each mission meets five. Befriend them all to fill your Looperdex.</li>
+      <li><b>117 different Loopers</b> live out there. Each mission meets five. Befriend them all to fill your Looperdex.</li>
       <li><b>Switch your Looplasso on</b> to play. Switch it off and the game pauses here.</li>
     </ul></details>
     <p>An unofficial fan game, not affiliated with Loop Labs. Best in a dim room.</p>
@@ -186,7 +186,7 @@
 
 <div class="card" id="dex" hidden>
   <h1>Looper<span>dex</span></h1>
-  <p id="dexCount">0 of 51 befriended</p>
+  <p id="dexCount">0 of 117 befriended</p>
   <div class="dexgrid" id="dexGrid"></div>
   <div class="row"><button class="primary" id="btnDexClose">Back</button></div>
 </div>
@@ -210,12 +210,15 @@
   var touchPt=null;
 
   var LINE_LIFE=2600;         // ms a point of the capture line stays alive
-  /* ---------- the 51 Loopers (shared by both games) ---------- */
+  /* ---------- the 117 Loopers (shared by both games) ---------- */
   var DEX_KEY='looplasso-dex';
   var LOOPERS=(function(){
     var T1=['Mossip','Pebblo','Dewdle','Fuzzle','Snoot','Bumbly','Tufty','Wobbin','Pipsy','Nibblet','Glimmy','Sproutle','Marbo','Drippo','Cobbit','Lumpkin','Snuggo'];
     var T2=['Zapfin','Puffrog','Gloomoth','Emberkit','Frostle','Thistlo','Whirlip','Sparkit','Bogglin','Cinderpuff','Tidlet','Quillow','Rumblet','Mistlet','Zoomble','Hopskip','Twirlin'];
     var T3=['Duskwing','Prismole','Voltuff','Stormlet','Aurorak','Lunari','Solstrix','Nebulon','Crystalla','Hexlin','Echolo','Vortexa','Miragey','Tempestry','Obsidia','Quasarry'];
+    var T1B=['Bobbit','Fliffle','Gumbo','Pudgee','Mopple','Sniffo','Tootle','Wibbit','Jelloo','Crumbo','Nubbin','Poppet','Dabble','Fidget','Gingle','Hubbin','Inkle','Kipper','Lollo','Muffet','Noodlet','Ozzle'];
+    var T2B=['Blazzle','Chillo','Dartle','Embloom','Flickit','Gustle','Hazelit','Icicly','Jolter','Kindlet','Lavvy','Murkle','Nettlit','Oozle','Plinkit','Quivit','Rippler','Scorchy','Thundle','Umbrix','Vinelet','Wispit'];
+    var T3B=['Astraeon','Boreala','Cosmara','Draconil','Eclipsa','Fluxor','Galaxis','Ionara','Jovian','Kryptal','Lumenar','Monsoona','Novaris','Orbitrix','Pulsarin','Radianta','Spectrix','Tundrake','Ultrava','Zenithar','Wyrmlit','Yondrel'];
     var FEATS=['roundEars','longEars','horn','spikes','tail','fin','spots','stripes','fangs','halo','crest','bowtie','blush','pointEars','antennae','cheeks','leaf','wings'];
     var EYES=['two','two','three','cyclops','stalk'];
     var SHAPES=[[1,1],[1.15,.9],[.9,1.15],[1.2,1],[1,1.15]];
@@ -236,7 +239,9 @@
         var h=(k*47+17)%360, s=62+(k%4)*4, l=58+(k%3)*3;
         L.color='hsl('+h+','+s+'%,'+l+'%)'; L.accent='hsl('+h+','+(s-12)+'%,'+Math.min(88,l+20)+'%)';
         var a=FEATS[k%FEATS.length], b=FEATS[(k*5+7)%FEATS.length]; if(b===a) b=FEATS[(k*5+8)%FEATS.length];
-        L.feats=[a,b]; L.eyes=EYES[k%EYES.length]; L.shape=SHAPES[(k*3)%SHAPES.length];
+        L.feats=[a,b];
+        if(k>=50){ var c3=FEATS[(k*7+3)%FEATS.length], t=0; while(c3===a||c3===b){ c3=FEATS[((k*7+3+(++t))%FEATS.length)] } L.feats.push(c3) }
+        L.eyes=EYES[k%EYES.length]; L.shape=SHAPES[(k*3)%SHAPES.length];
         if(tier===1){ L.move=MOVES1[k%MOVES1.length]; L.shoots=false; L.need=2+(k%2); L.time=38; L.speed=50+(k%4)*8 }
         else if(tier===2){ L.move=MOVES2[k%MOVES2.length]; L.shoots=(k%3===1); L.need=3+(k%3); L.time=40+(k%3)*2; L.speed=70+(k%5)*10 }
         else { L.move=MOVES3[k%MOVES3.length]; L.shoots=(k%2===0); L.need=5+(k%2); L.time=44; L.speed=100+(k%4)*10 }
@@ -249,6 +254,9 @@
     T1.forEach(function(n,k){ add(n,1,k) });
     T2.forEach(function(n,k){ add(n,2,k) });
     T3.forEach(function(n,k){ add(n,3,k) });
+    T1B.forEach(function(n,k){ add(n,1,k) });
+    T2B.forEach(function(n,k){ add(n,2,k) });
+    T3B.forEach(function(n,k){ add(n,3,k) });
     add('Kaleidon',4,0);
     return out;
   })();
@@ -384,7 +392,7 @@
 
   function pickMission(){
     var m=pickFrom(1,2).concat(pickFrom(2,2));
-    m=m.concat(normalsCaught()>=50&&!dex.kaleidon?[LOOPERS[50]]:pickFrom(3,1));
+    m=m.concat(normalsCaught()>=LOOPERS.length-1&&!dex.kaleidon?[LOOPERS[LOOPERS.length-1]]:pickFrom(3,1));
     return m;
   }
   /* ---------- encounters ---------- */
@@ -484,7 +492,7 @@
     var bonus=100+Math.round(c.timeLeft)*5+c.sp.need*30;
     score+=bonus;
     caps.push(c.sp.id); bubbles=[]; trail=[];
-    if(dexAdd(c.sp.id)) setTimeout(function(){ toast('New Looperdex entry: '+c.sp.name+' ('+dexCount()+'/51)',2200) },700);
+    if(dexAdd(c.sp.id)) setTimeout(function(){ toast('New Looperdex entry: '+c.sp.name+' ('+dexCount()+'/'+LOOPERS.length+')',2200) },700);
     burst(c.x,c.y,c.sp.color,40,260);
     toast(c.sp.name+' is your friend! +'+bonus,2000);
   }
@@ -506,7 +514,7 @@
     $('oSub').textContent=(caps.length===mission.length)
       ?'You befriended all '+mission.length+' Loopers on this mission.'
       :'You befriended '+caps.length+' of '+mission.length+'. The others got away. Keep your line clear of bumps and bubbles.';
-    $('oDex').textContent='Looperdex: '+dexCount()+' of 51'+(dexCount()===50&&!dex.kaleidon?'. One legendary Looper is waiting for you...':''); $('oCaps').textContent=caps.length+'/'+mission.length; $('oScore').textContent=score; $('oBest').textContent=best;
+    $('oDex').textContent='Looperdex: '+dexCount()+' of '+LOOPERS.length+(dexCount()===LOOPERS.length-1&&!dex.kaleidon?'. One legendary Looper is waiting for you...':''); $('oCaps').textContent=caps.length+'/'+mission.length; $('oScore').textContent=score; $('oBest').textContent=best;
     setState('over');
   }
 
@@ -926,7 +934,7 @@
   var dexFrom='start';
   function openDex(from){
     dexFrom=from; show(from,false); show('dex',true);
-    $('dexCount').textContent=dexCount()+' of '+LOOPERS.length+' befriended'+(normalsCaught()>=50&&!dex.kaleidon?'. The legendary Looper is ready to meet you.':'');
+    $('dexCount').textContent=dexCount()+' of '+LOOPERS.length+' befriended'+(normalsCaught()>=LOOPERS.length-1&&!dex.kaleidon?'. The legendary Looper is ready to meet you.':'');
     var grid=$('dexGrid'); grid.innerHTML='';
     LOOPERS.forEach(function(sp){
       var got=!!dex[sp.id], cell=document.createElement('div'); cell.className='dexcell'; cell.setAttribute('data-tier',sp.tier);

@@ -2,11 +2,11 @@
 
 > **In development (indev).** This game is a work in progress. Things will change and break.
 
-A browser game where your real glowing string loop is the controller. Befriend 51 Loopers by looping the string around them. Unofficial fan game, not affiliated with Loop Labs.
+A browser game where your real glowing string loop is the controller. Befriend 117 Loopers by sending the string through them or looping it around them. Unofficial fan game, not affiliated with Loop Labs.
 
 - Pick your string color (RGB, red, green or blue) so the camera can find it.
 - Optionally teach the game your lasso's sound. It pauses when you switch the lasso off and resumes when you switch it on.
-- A Looperdex tracks which of the 51 Loopers you have befriended.
+- A Looperdex tracks which of the 117 Loopers you have befriended.
 
 ## Running it
 
