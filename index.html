@@ -52,9 +52,9 @@
   .banner #bHint{display:block;font-size:14px;color:var(--paper);margin-top:9px;text-shadow:0 1px 3px rgba(0,0,0,.8)}
   .card label{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:14px;font-size:13px;font-weight:700;color:var(--ink-soft)}
   .card input[type=range]{flex:1;accent-color:var(--coral)}
-  .stat{display:flex;gap:18px;margin:14px 0}
+  .stat{display:flex;gap:12px;margin:14px 0}
   .stat div{flex:1}
-  .stat b{font-family:var(--display);font-weight:800;font-size:40px;display:block;line-height:1}
+  .stat b{font-family:var(--display);font-weight:800;font-size:30px;display:block;line-height:1}
   .stat small{color:var(--ink-soft);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:11px}
   .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 82px);transform:translateX(-50%);background:var(--paper);color:var(--ink);border:2.5px solid var(--ink);border-radius:999px;padding:7px 16px;font-size:14px;font-weight:700;box-shadow:3px 3px 0 var(--ink);pointer-events:none;max-width:calc(100% - 32px);text-align:center}
   .colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
@@ -216,7 +216,7 @@
 <div class="card" id="over" hidden>
   <h1 id="oTitle">Mission <span>over</span></h1>
   <p id="oSub"></p><p id="oDex"></p>
-  <div class="stat"><div><b id="oCaps">0</b><small>Befriended</small></div><div><b id="oScore">0</b><small>Score</small></div><div><b id="oCoins">0</b><small>Coins</small></div></div>
+  <div class="stat"><div><b id="oCaps">0</b><small>Befriended</small></div><div><b id="oScore">0</b><small>Score</small></div><div><b id="oCoins">0</b><small>Coins</small></div><div><b id="oBest">0</b><small>Best</small></div></div>
   <p id="oNext"></p>
   <div class="row">
     <button class="primary" id="btnAgain">New mission</button>
