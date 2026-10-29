@@ -97,6 +97,7 @@
   .moreinfo li{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed rgba(26,42,50,.25)}
   .card textarea,.card input[type=text],.card input[type=number]{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:2.5px solid var(--ink);border-radius:9px 11px 8px 10px;background:#fffaf0;color:var(--ink);margin-top:6px}
   .card textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;resize:none}
+  #trkPreview{position:static;inset:auto;width:100%;height:auto;aspect-ratio:4/3;display:block;border:2.5px solid var(--ink);border-radius:10px;background:#000;margin:10px 0 4px}
   .qr{display:block;width:min(260px,100%);image-rendering:pixelated;margin:8px auto;border:2.5px solid var(--ink);background:#fff;padding:6px}
   .digits{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:.12em}
   #scanVideo{position:static;left:auto;width:100%;height:auto;border:2.5px solid var(--ink);border-radius:10px;background:#000;margin-top:8px}
@@ -190,9 +191,10 @@
     <button data-c="green" aria-pressed="false"><i class="sw" style="background:#2dff6e"></i>Green</button>
     <button data-c="blue" aria-pressed="false"><i class="sw" style="background:#3b7bff"></i>Blue</button>
   </div>
+  <canvas id="trkPreview" width="192" height="144"></canvas>
   <p class="status"><i class="dot" id="trkDot"></i><span id="trkText">Looking for your string. Tap it on the screen to lock its color.</span></p>
   <div class="row"><button id="btnRoom">Hide my room</button><button id="btnRoomReset">Forget</button></div>
-  <p style="font-size:13px">Turn your Looplasso <b>off</b>, then tap Hide my room. Anything else that is the same color (lamps, screens, clothes) gets ignored. It also learns on its own whenever the game sees the lasso is off.</p>
+  <p style="font-size:13px">Turn your Looplasso <b>off</b>, then tap Hide my room. Anything else that is the same color (lamps, screens, clothes) turns red in the box above and gets ignored. Keep the phone steady while it learns. It also learns on its own whenever the game sees the lasso is off.</p>
   <label>Sensitivity <input type="range" id="sens" min="1" max="100" value="50" aria-label="Sensitivity"></label>
   <div class="audiobox">
     <b>Lasso sound</b>
@@ -514,7 +516,7 @@
     var s=parseInt($('sens').value,10)/100;
     return {minV:200-s*110, minS:.55-s*.3, tol:28+s*22};
   }
-  var trk={weak:null,strong:null,seen:null,stack:null,core:null,stat:null,bg:null,bgN:0,auto:1,last:null,n:0,lc:null,learnUntil:0};
+  var trk={weak:null,strong:null,seen:null,stack:null,core:null,stat:null,bg:null,bgN:0,auto:1,last:null,n:0,lc:null,learnUntil:0,learnWarn:-1e9,learnOk:0};
   function track(learn){
     if(!stream||cam.readyState<2||!colorMode) return null;
     var SW=small.width, SH=small.height, N=SW*SH;
@@ -523,7 +525,7 @@
     if(!trk.weak||trk.weak.length!==N){ trk.weak=new Uint8Array(N); trk.strong=new Uint8Array(N); trk.seen=new Uint8Array(N); trk.core=new Uint8Array(N); trk.stack=new Int32Array(N); trk.stat=new Uint16Array(N); trk.bg=new Uint8Array(N); trk.bgN=0 }
     var weak=trk.weak, strong=trk.strong, seen=trk.seen, core=trk.core, stack=trk.stack, stat=trk.stat, bgm=trk.bg;
     weak.fill(0); strong.fill(0); seen.fill(0); core.fill(0);
-    var p=sensParams(), f=trk.auto, multi=(colorMode==='rgb'), center=HUES[colorMode];
+    var p=sensParams(), f=learn?.72:trk.auto, multi=(colorMode==='rgb'), center=HUES[colorMode];
     // thresholds relax or tighten on their own (auto gain) so a dim or a blown-out room both work
     var minV=(p.minV+(multi?20:0))*f, minS=(p.minS+(multi?.05:0))*f, tol=p.tol/f;
     var wV=minV*.78, wS=minS*.7, wTol=tol*1.45, i, x, y, idx;
@@ -607,15 +609,19 @@
     keep.forEach(function(c0){ c0.pix.forEach(function(ci2){ var qx=ci2%SW, qy=(ci2/SW)|0; sx+=qx; sy+=qy; n++; pts.push([(qx+.5)/SW,(qy+.5)/SH]) }) });
     if(learn){
       // lasso is off: whatever still looks string-coloured is part of the room. Remember it and ignore it later.
+      var lit=false; try{ lit=gated()&&audio.isOn }catch(e0){}
+      if(!lit&&pts.length>=30){ var rg0=fitRing(pts.map(function(q){ return toCanvasPx(q[0],q[1]) })); if(rg0&&rg0.q>.6) lit=true }
+      if(lit){ trk.learnWarn=performance.now(); return null }   // that is the string itself, do not hide it
       for(idx=0;idx<N;idx++){
         if(!weak[idx]) continue;
         var lx=idx%SW, ly=(idx/SW)|0;
-        for(var oy2=-1;oy2<=1;oy2++) for(var ox2=-1;ox2<=1;ox2++){
+        for(var oy2=-3;oy2<=3;oy2++) for(var ox2=-3;ox2<=3;ox2++){
           var nx2=lx+ox2, ny2=ly+oy2; if(nx2<0||ny2<0||nx2>=SW||ny2>=SH) continue;
           var bi=ny2*SW+nx2; if(!bgm[bi]){ bgm[bi]=1; trk.bgN++ }
         }
       }
-      if(trk.bgN>N*.3){ bgm.fill(0); trk.bgN=0 }   // learned too much, start over
+      trk.learnOk=performance.now();
+      if(trk.bgN>N*.4){ bgm.fill(0); trk.bgN=0 }   // learned too much, start over
       return null;
     }
     // auto gain
@@ -1105,6 +1111,28 @@
     }
   }
 
+  var pvCtx=null, pvMask=null;
+  function drawPreview(t,now){
+    var cv=$('trkPreview'); if(!pvCtx) pvCtx=cv.getContext('2d');
+    var g=pvCtx, SW=cv.width, SH=cv.height;
+    g.drawImage(cam,0,0,SW,SH);
+    if(trk.bg&&trk.bgN&&trk.bg.length===SW*SH){
+      if(!pvMask){ pvMask=document.createElement('canvas'); pvMask.width=SW; pvMask.height=SH }
+      var mc=pvMask.getContext('2d'), im=mc.createImageData(SW,SH), b2=trk.bg;
+      for(var q=0;q<b2.length;q++) if(b2[q]){ im.data[q*4]=255; im.data[q*4+1]=60; im.data[q*4+2]=60; im.data[q*4+3]=140 }
+      mc.putImageData(im,0,0); g.drawImage(pvMask,0,0);
+    }
+    if(t){
+      g.fillStyle='#2dff6e'; t.pts.forEach(function(q){ g.fillRect(q[0]*SW-1,q[1]*SH-1,2,2) });
+      var rg=fitRing(t.pts.map(function(q){ return {x:q[0]*420,y:q[1]*315} }));
+      if(rg){ g.strokeStyle='#fff'; g.lineWidth=1.5; g.setLineDash([5,4]); g.beginPath(); g.arc(rg.x*SW/420,rg.y*SH/315,rg.r*SW/420,0,6.283); g.stroke(); g.setLineDash([]) }
+    }
+    var learning=now<trk.learnUntil;
+    if(learning||(performance.now()-trk.learnWarn<3500)){
+      g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(0,SH-22,SW,22); g.fillStyle='#fff'; g.font='700 11px sans-serif'; g.textAlign='center';
+      g.fillText(performance.now()-trk.learnWarn<3500?'Your Looplasso looks ON. Turn it off.':'Learning your room...',SW/2,SH-7);
+    }
+  }
   function draw(now){
     ctx.save();
     if(shake>0){ ctx.translate((Math.random()-.5)*10*shake*3,(Math.random()-.5)*10*shake*3) }
@@ -1191,7 +1219,7 @@
     }
 
     if(state==='calib'&&mode==='camera'&&colorMode){
-      var t=track();
+      var t=track(); drawPreview(t,now);
       if(t){
         var cp=toCanvasPx(t.x,t.y), sz2=Math.max(3,W/80);
         ctx.save(); ctx.globalCompositeOperation='lighter';
@@ -1696,7 +1724,7 @@
     }
   });
   view.addEventListener('pointerdown',function(e){ if(state==='calib'&&mode==='camera') pickColorAt(e.clientX,e.clientY) });
-  $('btnRoom').addEventListener('click',function(){ trk.learnUntil=performance.now()+1600; toast('Learning your room. Keep the Looplasso off and the phone still.',2200) });
+  $('btnRoom').addEventListener('click',function(){ trk.learnUntil=performance.now()+1600; trk.learnWarn=-1e9; toast('Learning your room. Keep the Looplasso off and the phone still.',2200) });
   $('btnRoomReset').addEventListener('click',function(){ forgetRoom(); toast('Forgot the room.',1200) });
   view.addEventListener('pointermove',function(e){ if(touchPt&&state==='play'&&mode==='touch') touchPt={x:e.clientX/W,y:e.clientY/H} });
   function endTouch(){ touchPt=null }
